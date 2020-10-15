@@ -30,21 +30,24 @@ first_sub_string(Full, Part) :-
 ingredients(Recipe, Ingredients) :-
   full_name(Recipe, FullName),
   recipe(FullName, ShortHand),
-  findall(Ingredient, contains(ShortHand, Ingredient), Ingredients).
+  findall(Ingredient, contains(ShortHand, Ingredient), IngredientStrings),
+  maplist(parse_ingredient, IngredientStrings, Ingredients).
 
-ingredient(String, Quantity, Unit, Ingredient) :-
-  (
-    split_string(String, " ", "", [QuantityWord | IngredientWords]),
-    quantity_with_unit(QuantityWord, Quantity, Unit),
-    atomics_to_string(IngredientWords, ' ', Ingredient)
-  );
-  (
+parse_ingredient(String, ingredient(Quantity, Unit, Ingredient)) :-
     split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
     atom_string(Unit, UnitWord),
     unit(Unit),
+    !,
     number_string(Quantity, QuantityWord),
-    atomics_to_string(IngredientWords, ' ', Ingredient)
-  ).
+    atomics_to_string(IngredientWords, ' ', Ingredient).
+parse_ingredient(String, ingredient(Quantity, Unit, Ingredient)) :-
+    split_string(String, " ", "", [QuantityWord | IngredientWords]),
+    quantity_with_unit(QuantityWord, Quantity, Unit),
+    atomics_to_string(IngredientWords, ' ', Ingredient).
+parse_ingredient(String, ingredient(Quantity, Ingredient)) :-
+    split_string(String, " ", "", [QuantityWord | IngredientWords]),
+    number_string(Quantity, QuantityWord),
+    atomics_to_string(IngredientWords, ' ', Ingredient).
 
 quantity_with_unit(String, Quantity, Unit) :-
   string_concat(QuantityString, UnitString, String),
