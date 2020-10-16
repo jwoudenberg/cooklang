@@ -27,23 +27,37 @@ first_sub_string(Full, Part) :-
 
 grocery_list(Recipes, Groceries) :-
   maplist(ingredients, Recipes, NestedGroceries),
-  append(NestedGroceries, Groceries).
+  append(NestedGroceries, DupedGroceries),
+  dedupe(DupedGroceries, Groceries).
 
 ingredients(portions(Recipe, Portions), Ingredients) :-
   full_name(Recipe, FullName),
   recipe(FullName, RecipePortions, ShortHand),
   findall(Ingredient, contains(ShortHand, Ingredient), IngredientStrings),
   maplist(parse_ingredient, IngredientStrings, IngredientsForDefaultPortions),
-  maplist(for_portions(RecipePortions, Portions), IngredientsForDefaultPortions, Ingredients).
-
-for_portions(
-  RecipePortions,
-  Portions,
-  RecipeIngredient,
-  Ingredient
-) :-
   Factor is Portions/RecipePortions,
-  multiply_quantity(Factor, RecipeIngredient, Ingredient).
+  maplist(multiply_quantity(Factor), IngredientsForDefaultPortions, Ingredients).
+
+dedupe(Duped, Deduped) :-
+  empty_assoc(Init),
+  foldl(add_ingredient,Duped,Init,DedupedAssoc),
+  assoc_to_values(DedupedAssoc, Deduped).
+
+add_ingredient(Ingredient,AssocWithout,AssocWith) :-
+  get_ingredient(Ingredient,Key),
+  get_assoc(Key, AssocWithout, Accum, AssocWith, Sum),
+  sum(Accum, Ingredient, Sum).
+add_ingredient(Ingredient,AssocWithout,AssocWith) :-
+  get_ingredient(Ingredient,Key),
+  put_assoc(Key, AssocWithout, Ingredient, AssocWith).
+
+get_ingredient(ingredient(_, _, Ingredient), Ingredient).
+get_ingredient(ingredient(_, Ingredient), Ingredient).
+
+sum(ingredient(First, Ingredient), ingredient(Second, Ingredient), ingredient(Sum, Ingredient)) :-
+  Sum is First+Second.
+sum(ingredient(First, Unit, Ingredient), ingredient(Second, Unit, Ingredient), ingredient(Sum, Ingredient)) :-
+  Sum is First+Second.
 
 multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(MultipliedQuantity, Ingredient)) :-
   MultipliedQuantity is Quantity*Factor.
