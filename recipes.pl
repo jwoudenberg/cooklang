@@ -2,16 +2,14 @@
 
 % Bolognese
 
-recipe("Spaghetti bolognese a la mama", bolognese).
-portions(bolognese, 4).
+recipe("Spaghetti bolognese a la mama", 4, bolognese).
 contains(bolognese, "1 blikje tomatenblokjes").
 contains(bolognese, "100 g spaghetti").
 contains(bolognese, "400g gehakt").
 
 % Aubergineschotel
 
-recipe("Aubergineschotel met kaas", aubergineschotel).
-portions(aubergineschotel, 2).
+recipe("Aubergineschotel met kaas", 2, aubergineschotel).
 contains(aubergineschotel, "1.5 aubergines").
 contains(aubergineschotel, "200g kaas").
 contains(aubergineschotel, "1 blikje tomatenblokjes").
@@ -19,7 +17,7 @@ contains(aubergineschotel, "1 blikje tomatenblokjes").
 % Helpers
 
 full_name(Part, Full) :-
-  recipe(Full, _),
+  recipe(Full, _, _),
   string_lower(Full, FullLower),
   first_sub_string(FullLower, Part).
 
@@ -27,11 +25,30 @@ first_sub_string(Full, Part) :-
   sub_string(Full, _, _, _, Part),
   !.
 
-ingredients(Recipe, Ingredients) :-
+grocery_list(Recipes, Groceries) :-
+  maplist(ingredients, Recipes, NestedGroceries),
+  append(NestedGroceries, Groceries).
+
+ingredients(portions(Recipe, Portions), Ingredients) :-
   full_name(Recipe, FullName),
-  recipe(FullName, ShortHand),
+  recipe(FullName, RecipePortions, ShortHand),
   findall(Ingredient, contains(ShortHand, Ingredient), IngredientStrings),
-  maplist(parse_ingredient, IngredientStrings, Ingredients).
+  maplist(parse_ingredient, IngredientStrings, IngredientsForDefaultPortions),
+  maplist(for_portions(RecipePortions, Portions), IngredientsForDefaultPortions, Ingredients).
+
+for_portions(
+  RecipePortions,
+  Portions,
+  RecipeIngredient,
+  Ingredient
+) :-
+  Factor is Portions/RecipePortions,
+  multiply_quantity(Factor, RecipeIngredient, Ingredient).
+
+multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(MultipliedQuantity, Ingredient)) :-
+  MultipliedQuantity is Quantity*Factor.
+multiply_quantity(Factor, ingredient(Quantity, Unit, Ingredient), ingredient(MultipliedQuantity, Unit, Ingredient)) :-
+  MultipliedQuantity is Quantity*Factor.
 
 parse_ingredient(String, ingredient(Quantity, Unit, Ingredient)) :-
     split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
