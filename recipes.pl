@@ -6,6 +6,7 @@ recipe("Spaghetti bolognese a la mama", 4, bolognese).
 contains(bolognese, "1 blikje tomatenblokjes").
 contains(bolognese, "100 g spaghetti").
 contains(bolognese, "400g gehakt").
+contains(bolognese, "2kg kaas").
 
 % Aubergineschotel
 
@@ -46,18 +47,25 @@ dedupe(Duped, Deduped) :-
 add_ingredient(Ingredient,AssocWithout,AssocWith) :-
   get_ingredient(Ingredient,Key),
   get_assoc(Key, AssocWithout, Accum, AssocWith, Sum),
-  sum(Accum, Ingredient, Sum).
+  add_ingredients(Accum, Ingredient, Sum).
 add_ingredient(Ingredient,AssocWithout,AssocWith) :-
   get_ingredient(Ingredient,Key),
+  \+ get_assoc(Key, AssocWithout, _),
   put_assoc(Key, AssocWithout, Ingredient, AssocWith).
 
 get_ingredient(ingredient(_, _, Ingredient), Ingredient).
 get_ingredient(ingredient(_, Ingredient), Ingredient).
 
-sum(ingredient(First, Ingredient), ingredient(Second, Ingredient), ingredient(Sum, Ingredient)) :-
-  Sum is First+Second.
-sum(ingredient(First, Unit, Ingredient), ingredient(Second, Unit, Ingredient), ingredient(Sum, Ingredient)) :-
-  Sum is First+Second.
+add_ingredients(ingredient(X, I), ingredient(Y, I), ingredient(Sum, I)) :-
+  Sum is X+Y.
+add_ingredients(ingredient(X, U, I), ingredient(Y, U, I), ingredient(Sum, U, I)) :-
+  Sum is X+Y.
+add_ingredients(ingredient(X, UX, I), ingredient(Y, UY, I), ingredient(Sum, UX, I)) :-
+  convert(quantity(Y, UY), quantity(Y2, UX)),
+  Sum is X+Y2.
+add_ingredients(ingredient(X, UX, I), ingredient(Y, UY, I), ingredient(Sum, UY, I)) :-
+  convert(quantity(X, UX), quantity(X2, UY)),
+  Sum is X2+Y.
 
 multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(MultipliedQuantity, Ingredient)) :-
   MultipliedQuantity is Quantity*Factor.
@@ -87,3 +95,7 @@ quantity_with_unit(String, Quantity, Unit) :-
   number_string(Quantity, QuantityString).
 
 unit(g).
+unit(kg).
+
+convert(quantity(X, gram), quantity(X, g)).
+convert(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
