@@ -66,14 +66,15 @@ parse_portions(Portions, Blocks) :-
   number_string(Portions, PortionsWord).
 parse_portions(1, _).
 
-without_li(Y, X) :-
-  unpack(Y, Z) ->
-  without_li(Z, X);
-  X = Y.
+without_li(li(Html), Contents) :-
+  contents(Html, Contents).
 
-unpack(li(X), X).
-unpack([X], X).
-unpack(\[X], X).
+contents(Html, Contents) :-
+  Html = \X ->
+    contents(X, Contents);
+  maplist(contents, Html, Results) ->
+    atomics_to_string(Results, '', Contents);
+    Html = Contents.
 
 full_name(Part, Full) :-
   recipe(Full, _),
