@@ -26,7 +26,6 @@ parse_recipe(Path) :-
   close(Stream).
 
 parse_recipe(Stream, Path) :-
-  format("Parsing: ~w~n", [Path]),
   (
     md_parse_file(Path, Blocks),
     parse_name(Name, Blocks),
