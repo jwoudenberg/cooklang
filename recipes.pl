@@ -1,32 +1,54 @@
-:-asserta(user:file_search_path(library, 'packs/markdown/prolog')).
-:-style_check(-discontiguous).
-:-use_module(library(md/md_parse)).
+:- module(recipes, [parse_recipe/1]).
+:- asserta(user:file_search_path(library, 'packs/markdown/prolog')).
+:- style_check(-discontiguous).
+:- use_module(library(md/md_parse)).
 
 % Bolognese
 
-recipe("Spaghetti bolognese a la mama", 4, bolognese).
-contains(bolognese, "1 blikje tomatenblokjes").
-contains(bolognese, "100 g spaghetti").
-contains(bolognese, "400g gehakt").
-contains(bolognese, "2kg kaas").
+recipe("Spaghetti bolognese a la mama", 4).
+contains("Spaghetti bolognese a la mama", "1 blikje tomatenblokjes").
+contains("Spaghetti bolognese a la mama", "100 g spaghetti").
+contains("Spaghetti bolognese a la mama", "400g gehakt").
+contains("Spaghetti bolognese a la mama", "2kg kaas").
 
 % Aubergineschotel
 
-recipe("Aubergineschotel met kaas", 2, aubergineschotel).
-contains(aubergineschotel, "1.5 aubergines").
-contains(aubergineschotel, "200g kaas").
-contains(aubergineschotel, "1 blikje tomatenblokjes").
+recipe("Aubergineschotel met kaas", 2).
+contains("Aubergineschotel met kaas", "1.5 aubergines").
+contains("Aubergineschotel met kaas", "200g kaas").
+contains("Aubergineschotel met kaas", "1 blikje tomatenblokjes").
 
 % Helpers
 
-full_name(Part, Full) :-
-  recipe(Full, _, _),
-  string_lower(Full, FullLower),
-  first_sub_string(FullLower, Part).
+parse_recipe(Path) :-
+  md_parse_file(Path, Blocks),
+  parse_name(Name, Blocks),
+  parse_portions(Portions, Blocks),
+  parse_ingredients(Ingredients, Blocks),
+  format('markdown ~q ~q ~q~n', [Name, Portions, Ingredients]).
 
-first_sub_string(Full, Part) :-
-  sub_string(Full, _, _, _, Part),
-  !.
+parse_name(Name, Blocks) :-
+  member(h1(Name), Blocks).
+
+parse_ingredients(Ingredients, Blocks) :-
+  member(ul(LiIngredients), Blocks),
+  maplist(without_li, LiIngredients, IngredientStrings),
+  maplist(parse_ingredient, IngredientStrings, Ingredients).
+
+parse_portions(Portions, Blocks) :-
+  member(p([\[PortionsLine]]), Blocks),
+  sub_string(PortionsLine, _, _, _, PortionsWord),
+  number_string(Portions, PortionsWord).
+parse_portions(4, _).
+
+without_li(li([\[X]]), X).
+without_li(li([X]), X).
+without_li(li(X), X).
+
+full_name(Part, Full) :-
+  recipe(Full, _),
+  string_lower(Full, FullLower),
+  sub_string(FullLower, _, _, _, Part).
 
 grocery_list(Recipes, Groceries) :-
   maplist(ingredients, Recipes, NestedGroceries),
@@ -35,8 +57,8 @@ grocery_list(Recipes, Groceries) :-
 
 ingredients(portions(Recipe, Portions), Ingredients) :-
   full_name(Recipe, FullName),
-  recipe(FullName, RecipePortions, ShortHand),
-  findall(Ingredient, contains(ShortHand, Ingredient), IngredientStrings),
+  recipe(FullName, RecipePortions),
+  findall(Ingredient, contains(FullName, Ingredient), IngredientStrings),
   maplist(parse_ingredient, IngredientStrings, IngredientsForDefaultPortions),
   Factor is Portions/RecipePortions,
   maplist(multiply_quantity(Factor), IngredientsForDefaultPortions, Ingredients).
@@ -57,7 +79,9 @@ add_ingredient(Ingredient,AssocWithout,AssocWith) :-
 
 get_ingredient(ingredient(_, _, Ingredient), Ingredient).
 get_ingredient(ingredient(_, Ingredient), Ingredient).
+get_ingredient(ingredient(Ingredient), Ingredient).
 
+add_ingredients(ingredient(I), ingredient(I), ingredient(I)).
 add_ingredients(ingredient(X, I), ingredient(Y, I), ingredient(Sum, I)) :-
   Sum is X+Y.
 add_ingredients(ingredient(X, U, I), ingredient(Y, U, I), ingredient(Sum, U, I)) :-
@@ -69,26 +93,42 @@ add_ingredients(ingredient(X, UX, I), ingredient(Y, UY, I), ingredient(Sum, UY, 
   convert(quantity(X, UX), quantity(X2, UY)),
   Sum is X2+Y.
 
+multiply_quantity(_, ingredient(Ingredient), ingredient(Ingredient)).
 multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(MultipliedQuantity, Ingredient)) :-
   MultipliedQuantity is Quantity*Factor.
 multiply_quantity(Factor, ingredient(Quantity, Unit, Ingredient), ingredient(MultipliedQuantity, Unit, Ingredient)) :-
   MultipliedQuantity is Quantity*Factor.
 
-parse_ingredient(String, ingredient(Quantity, Unit, Ingredient)) :-
+parse_ingredient(String, I) :-
+  (
     split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
     atom_string(Unit, UnitWord),
-    unit(Unit),
-    !,
+    unit(Unit)
+  ) ->
+  (
     number_string(Quantity, QuantityWord),
-    atomics_to_string(IngredientWords, ' ', Ingredient).
-parse_ingredient(String, ingredient(Quantity, Unit, Ingredient)) :-
+    atomics_to_string(IngredientWords, ' ', Ingredient),
+    I = ingredient(Quantity, Unit, Ingredient)
+  );
+  (
     split_string(String, " ", "", [QuantityWord | IngredientWords]),
-    quantity_with_unit(QuantityWord, Quantity, Unit),
-    atomics_to_string(IngredientWords, ' ', Ingredient).
-parse_ingredient(String, ingredient(Quantity, Ingredient)) :-
+    quantity_with_unit(QuantityWord, Quantity, Unit)
+  ) ->
+  (
+    atomics_to_string(IngredientWords, ' ', Ingredient),
+    I = ingredient(Quantity, Unit, Ingredient)
+  );
+  (
     split_string(String, " ", "", [QuantityWord | IngredientWords]),
-    number_string(Quantity, QuantityWord),
-    atomics_to_string(IngredientWords, ' ', Ingredient).
+    number_string(Quantity, QuantityWord)
+  ) ->
+  (
+    atomics_to_string(IngredientWords, ' ', Ingredient),
+    I = ingredient(Quantity, Ingredient)
+  );
+  (
+    I = ingredient(String)
+  ).
 
 quantity_with_unit(String, Quantity, Unit) :-
   string_concat(QuantityString, UnitString, String),
