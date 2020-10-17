@@ -1,4 +1,4 @@
-:- module(groceries, [parse_recipe/2]).
+:- module(groceries, [parse_recipe/1, parse_recipe/2]).
 :- asserta(user:file_search_path(library, 'packs/markdown/prolog')).
 :- style_check(-discontiguous).
 :- use_module(library(md/md_parse)).
@@ -20,6 +20,11 @@ contains("Aubergineschotel met kaas", "1 blikje tomatenblokjes").
 
 % Helpers
 
+parse_recipe(Path) :-
+  open("/dev/stdout", append, Stream),
+  parse_recipe(Stream, Path),
+  close(Stream).
+
 parse_recipe(Stream, Path) :-
   format("Parsing: ~w~n", Path),
   md_parse_file(Path, Blocks),
@@ -27,7 +32,7 @@ parse_recipe(Stream, Path) :-
   parse_portions(Portions, Blocks),
   parse_ingredients(Ingredients, Blocks),
   write_fact(Stream, portions(Name, Portions)),
-  maplist(write_ingredient(Stream, Name),Ingredients),
+  maplist(write_ingredient(Stream, Name), Ingredients),
   format(Stream, "~n", []).
 
 write_ingredient(Stream, Name, Ingredient) :-
@@ -39,6 +44,10 @@ write_fact(Stream, Term) :-
 parse_name(Name, Blocks) :-
   member(h1(Name), Blocks).
 
+% This rule makes the following assumptions about the recipe markdown:
+%
+% - The markdown contains a single unordered list.
+% - All the items in that list are separate ingredients.
 parse_ingredients(Ingredients, Blocks) :-
   member(ul(LiIngredients), Blocks),
   maplist(without_li, LiIngredients, IngredientStrings),
@@ -50,9 +59,14 @@ parse_portions(Portions, Blocks) :-
   number_string(Portions, PortionsWord).
 parse_portions(1, _).
 
-without_li(li([\[X]]), X).
-without_li(li([X]), X).
-without_li(li(X), X).
+without_li(Y, X) :-
+  unpack(Y, Z) ->
+  without_li(Z, X);
+  X = Y.
+
+unpack(li(X), X).
+unpack([X], X).
+unpack(\[X], X).
 
 full_name(Part, Full) :-
   recipe(Full, _),
