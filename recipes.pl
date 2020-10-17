@@ -1,4 +1,4 @@
-:- module(recipes, [parse_recipe/1]).
+:- module(recipes, [parse_recipe/2]).
 :- asserta(user:file_search_path(library, 'packs/markdown/prolog')).
 :- style_check(-discontiguous).
 :- use_module(library(md/md_parse)).
@@ -20,12 +20,20 @@ contains("Aubergineschotel met kaas", "1 blikje tomatenblokjes").
 
 % Helpers
 
-parse_recipe(Path) :-
+parse_recipe(Stream, Path) :-
+  format("Parsing: ~w~n", Path),
   md_parse_file(Path, Blocks),
   parse_name(Name, Blocks),
   parse_portions(Portions, Blocks),
   parse_ingredients(Ingredients, Blocks),
-  format('markdown ~q ~q ~q~n', [Name, Portions, Ingredients]).
+  write_fact(Stream, portions(Name, Portions)),
+  maplist(write_ingredient(Stream, Name),Ingredients).
+
+write_ingredient(Stream, Name, Ingredient) :-
+  write_fact(Stream, contains(Name, Ingredient)).
+
+write_fact(Stream, Term) :-
+  format(Stream, '~q.~n', Term).
 
 parse_name(Name, Blocks) :-
   member(h1(Name), Blocks).
