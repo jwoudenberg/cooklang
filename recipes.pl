@@ -1,4 +1,6 @@
+:-asserta(user:file_search_path(library, 'packs/markdown/prolog')).
 :-style_check(-discontiguous).
+:-use_module(library(md/md_parse)).
 
 % Bolognese
 
