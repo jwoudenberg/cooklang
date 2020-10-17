@@ -1,3 +1,5 @@
+#!/usr/bin/env swipl
+
 :- set_prolog_flag(verbose, silent).
 :- initialization(main).
 :- use_module(groceries).
