@@ -26,14 +26,21 @@ parse_recipe(Path) :-
   close(Stream).
 
 parse_recipe(Stream, Path) :-
-  format("Parsing: ~w~n", Path),
-  md_parse_file(Path, Blocks),
-  parse_name(Name, Blocks),
-  parse_portions(Portions, Blocks),
-  parse_ingredients(Ingredients, Blocks),
-  write_fact(Stream, portions(Name, Portions)),
-  maplist(write_ingredient(Stream, Name), Ingredients),
-  format(Stream, "~n", []).
+  format("Parsing: ~w~n", [Path]),
+  (
+    md_parse_file(Path, Blocks),
+    parse_name(Name, Blocks),
+    parse_portions(Portions, Blocks),
+    parse_ingredients(Ingredients, Blocks)
+  ) ->
+  (
+    write_fact(Stream, portions(Name, Portions)),
+    maplist(write_ingredient(Stream, Name), Ingredients),
+    format(Stream, "~n", [])
+  );
+  (
+    format("Failed to parse ~w~n", [Path])
+  ).
 
 write_ingredient(Stream, Name, Ingredient) :-
   write_fact(Stream, contains(Name, Ingredient)).
