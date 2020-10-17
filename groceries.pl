@@ -47,7 +47,7 @@ parse_portions(Portions, Blocks) :-
   member(p([\[PortionsLine]]), Blocks),
   sub_string(PortionsLine, _, _, _, PortionsWord),
   number_string(Portions, PortionsWord).
-parse_portions(4, _).
+parse_portions(1, _).
 
 without_li(li([\[X]]), X).
 without_li(li([X]), X).
