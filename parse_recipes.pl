@@ -5,6 +5,7 @@
 main :-
   current_prolog_flag(argv, Argv),
   open('recipes.pl', write, Stream),
+  format(Stream, ":- style_check(-discontiguous).~n~n", []),
   maplist(parse_recipe(Stream), Argv),
   close(Stream),
   halt.
