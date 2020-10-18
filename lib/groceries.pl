@@ -1,7 +1,8 @@
 :- module(groceries, [grocery_list/2]).
+:- use_module(recipes).
 
 full_name(Part, Full) :-
-  recipe(Full, _),
+  portions(Full, _),
   string_lower(Full, FullLower),
   sub_string(FullLower, _, _, _, Part).
 
@@ -12,9 +13,8 @@ grocery_list(Recipes, Groceries) :-
 
 ingredients(portions(Recipe, Portions), Ingredients) :-
   full_name(Recipe, FullName),
-  recipe(FullName, RecipePortions),
-  findall(Ingredient, contains(FullName, Ingredient), IngredientStrings),
-  maplist(parse_ingredient, IngredientStrings, IngredientsForDefaultPortions),
+  portions(FullName, RecipePortions),
+  findall(Ingredient, contains(FullName, Ingredient), IngredientsForDefaultPortions),
   Factor is Portions/RecipePortions,
   maplist(multiply_quantity(Factor), IngredientsForDefaultPortions, Ingredients).
 
