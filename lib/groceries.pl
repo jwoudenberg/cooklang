@@ -48,26 +48,22 @@ add_ingredient(Ingredient,AssocWithout,AssocWith) :-
   put_assoc(Key, AssocWithout, Ingredient, AssocWith).
 
 get_ingredient(ingredient(_, _, Ingredient), Ingredient).
-get_ingredient(ingredient(_, Ingredient), Ingredient).
-get_ingredient(ingredient(Ingredient), Ingredient).
+get_ingredient(ingredient(_, Ingredient   ), Ingredient).
+get_ingredient(ingredient(Ingredient      ), Ingredient).
 
-add_ingredients(ingredient(I), ingredient(I), ingredient(I)).
-add_ingredients(ingredient(X, I), ingredient(Y, I), ingredient(Sum, I)) :-
-  Sum is X+Y.
-add_ingredients(ingredient(X, U, I), ingredient(Y, U, I), ingredient(Sum, U, I)) :-
-  Sum is X+Y.
-add_ingredients(ingredient(X, UX, I), ingredient(Y, UY, I), ingredient(Sum, UX, I)) :-
-  convert(quantity(Y, UY), quantity(Y2, UX)),
-  Sum is X+Y2.
-add_ingredients(ingredient(X, UX, I), ingredient(Y, UY, I), ingredient(Sum, UY, I)) :-
-  convert(quantity(X, UX), quantity(X2, UY)),
-  Sum is X2+Y.
+add_ingredients(ingredient(I      ), ingredient(I      ), ingredient(I      )).
+add_ingredients(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
+add_ingredients(ingredient(X, U, I), ingredient(Y, U, I), ingredient(S, U, I)) :- S is X+Y.
+add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U, I)) :-
+  convert(quantity(Y, V), quantity(Y2, U)),
+  S is X+Y2.
+add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, V, I)) :-
+  convert(quantity(X, U), quantity(X2, V)),
+  S is X2+Y.
 
-multiply_quantity(_, ingredient(Ingredient), ingredient(Ingredient)).
-multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(MultipliedQuantity, Ingredient)) :-
-  MultipliedQuantity is Quantity*Factor.
-multiply_quantity(Factor, ingredient(Quantity, Unit, Ingredient), ingredient(MultipliedQuantity, Unit, Ingredient)) :-
-  MultipliedQuantity is Quantity*Factor.
+multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
+multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Factor.
+multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
 
-convert(quantity(X, gram), quantity(X, g)).
-convert(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
+convert(quantity(X, gram), quantity(X, g )).
+convert(quantity(X, g   ), quantity(Y, kg)) :- Y is X/1000.
