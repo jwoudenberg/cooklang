@@ -112,6 +112,23 @@ multiply_quantity(Factor, ingredient(Quantity, Ingredient), ingredient(Multiplie
 multiply_quantity(Factor, ingredient(Quantity, Unit, Ingredient), ingredient(MultipliedQuantity, Unit, Ingredient)) :-
   MultipliedQuantity is Quantity*Factor.
 
+
+:- begin_tests(parse_ingredient).
+
+test(with_unit) :-
+  parse_ingredient("200 g fluffy bits", ingredient(200, g, "fluffy bits")).
+
+test(with_unit_attached) :-
+  parse_ingredient("200g fluffy bits", ingredient(200, g, "fluffy bits")).
+
+test(without_unit) :-
+  parse_ingredient("200 fluffy bits", ingredient(200, "fluffy bits")).
+
+test(without_quantity) :-
+  parse_ingredient("fluffy bits", ingredient("fluffy bits")).
+
+:- end_tests(parse_ingredient).
+
 parse_ingredient(String, I) :-
   (
     split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
