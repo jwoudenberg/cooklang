@@ -16,6 +16,14 @@ For parsing to succeed each recipe markdown file must contain a single root-leve
 
 The script will write the recipe knowledge base to `recipes.pl`. It's a human-readable file, so feel free to take a look!
 
+## Create a meal planning module
+
+In this file you'll do your meal planning. There's an example file bundled with this repo to get you started. To use it:
+
+```
+cp planning.pl.example planning.pl
+```
+
 ## Getting your grocery list
 
 This is still a work in progress. There's some functions already defined in `groceries.pl` if you want to take a look!

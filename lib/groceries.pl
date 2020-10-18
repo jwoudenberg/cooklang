@@ -1,5 +1,4 @@
 :- module(groceries, [search_recipe/2, grocery_list/2]).
-:- use_module(recipes).
 
 search_recipe(Query, Name) :-
   portions(Name, _),
