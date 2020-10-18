@@ -8,7 +8,8 @@
 main :-
   current_prolog_flag(argv, Argv),
   open('recipes.pl', write, Stream),
-  format(Stream, ":- style_check(-discontiguous).~n~n", []),
+  format(Stream, ":- module(recipes, [portions/2, contains/2]).~n~n", []),
+  format(Stream, ":- style_check(-discontiguous).~n", []),
   maplist(parse_recipe(Stream), Argv),
   close(Stream),
   halt.
