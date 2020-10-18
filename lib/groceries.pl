@@ -6,20 +6,30 @@ search_recipe(Query, Name) :-
   split_string(Query, " ", "", Keywords),
   maplist(contains_keyword(Name), Keywords).
 
+find_recipe(Query, Name) :-
+  once(search_recipe(Query, Name)).
+
 contains_keyword(Full, Keyword) :-
   string_lower(Full, FullLower),
   string_lower(Keyword, KeywordLower),
   sub_string(FullLower, _, _, _, KeywordLower).
 
-grocery_list(Recipes, Groceries) :-
+grocery_list(Queries, Groceries) :-
+  maplist(parse_input, Queries, Recipes),
   maplist(ingredients, Recipes, NestedGroceries),
   append(NestedGroceries, DupedGroceries),
   dedupe(DupedGroceries, Groceries).
 
-ingredients(portions(Recipe, Portions), Ingredients) :-
-  search_recipe(Recipe, FullName),
-  portions(FullName, RecipePortions),
-  findall(Ingredient, contains(FullName, Ingredient), IngredientsForDefaultPortions),
+parse_input(recipe(Query, Portions), recipe(Name, Portions)) :-
+  find_recipe(Query, Name).
+parse_input(Query, recipe(Name, DefaultPortions)) :-
+  atomic(Query),
+  find_recipe(Query, Name),
+  portions(Name, DefaultPortions).
+
+ingredients(recipe(Name, Portions), Ingredients) :-
+  portions(Name, RecipePortions),
+  findall(Ingredient, contains(Name, Ingredient), IngredientsForDefaultPortions),
   Factor is Portions/RecipePortions,
   maplist(multiply_quantity(Factor), IngredientsForDefaultPortions, Ingredients).
 
