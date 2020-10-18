@@ -1,4 +1,20 @@
-:- module(groceries, [search_recipe/2, grocery_list/2]).
+:- module(groceries, [mealplan/1, search_recipe/2, grocery_list/2]).
+
+% Example usage:
+%
+%     ?- mealplan([Mo, Tu, We, Th, Fr, Sa, Su]).
+mealplan(Recipes) :-
+  findall(R, favorite(R), Favorites),
+  sublist(Recipes, Favorites),
+  maplist(recipe, Recipes).
+
+sublist([], _).
+sublist([X|Xs], [Y|Ys]) :-
+  (X = Y, sublist(Xs, Ys));
+  sublist([X|Xs], Ys).
+
+recipe(Query) :-
+  find_recipe(Query, _).
 
 search_recipe(Query, Name) :-
   portions(Name, _),
@@ -15,7 +31,7 @@ contains_keyword(Full, Keyword) :-
 
 grocery_list(Queries, Groceries) :-
   maplist(parse_input, Queries, Recipes),
-  maplist(ingredients, Recipes, NestedGroceries),
+  maplist(portioned_ingredients, Recipes, NestedGroceries),
   append(NestedGroceries, DupedGroceries),
   dedupe(DupedGroceries, Groceries).
 
@@ -26,11 +42,14 @@ parse_input(Query, recipe(Name, DefaultPortions)) :-
   find_recipe(Query, Name),
   portions(Name, DefaultPortions).
 
-ingredients(recipe(Name, Portions), Ingredients) :-
+portioned_ingredients(recipe(Name, Portions), Ingredients) :-
   portions(Name, RecipePortions),
-  findall(Ingredient, contains(Name, Ingredient), IngredientsForDefaultPortions),
+  ingredients(Name, IngredientsForDefaultPortions),
   Factor is Portions/RecipePortions,
   maplist(multiply_quantity(Factor), IngredientsForDefaultPortions, Ingredients).
+
+ingredients(Name, Ingredients) :-
+  findall(Ingredient, contains(Name, Ingredient), Ingredients).
 
 dedupe(Duped, Deduped) :-
   empty_assoc(Init),
@@ -45,6 +64,10 @@ add_ingredient(Ingredient,AssocWithout,AssocWith) :-
   get_ingredient(Ingredient,Key),
   \+ get_assoc(Key, AssocWithout, _),
   put_assoc(Key, AssocWithout, Ingredient, AssocWith).
+
+with_ingredient(P, I) :-
+  get_ingredient(I, Ingredient),
+  call(P, Ingredient).
 
 get_ingredient(ingredient(_, _, Ingredient), Ingredient).
 get_ingredient(ingredient(_, Ingredient   ), Ingredient).
