@@ -3,7 +3,7 @@
 :- set_prolog_flag(verbose, silent).
 :- set_test_options([load(never)]).
 :- initialization(main).
-:- use_module(lib/groceries).
+:- use_module(lib/recipe_parsing).
 
 main :-
   current_prolog_flag(argv, Argv),
