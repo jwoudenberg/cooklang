@@ -1,10 +1,15 @@
-:- module(groceries, [grocery_list/2]).
+:- module(groceries, [search_recipe/2, grocery_list/2]).
 :- use_module(recipes).
 
-full_name(Part, Full) :-
-  portions(Full, _),
+search_recipe(Query, Name) :-
+  portions(Name, _),
+  split_string(Query, " ", "", Keywords),
+  maplist(contains_keyword(Name), Keywords).
+
+contains_keyword(Full, Keyword) :-
   string_lower(Full, FullLower),
-  sub_string(FullLower, _, _, _, Part).
+  string_lower(Keyword, KeywordLower),
+  sub_string(FullLower, _, _, _, KeywordLower).
 
 grocery_list(Recipes, Groceries) :-
   maplist(ingredients, Recipes, NestedGroceries),
@@ -12,7 +17,7 @@ grocery_list(Recipes, Groceries) :-
   dedupe(DupedGroceries, Groceries).
 
 ingredients(portions(Recipe, Portions), Ingredients) :-
-  full_name(Recipe, FullName),
+  search_recipe(Recipe, FullName),
   portions(FullName, RecipePortions),
   findall(Ingredient, contains(FullName, Ingredient), IngredientsForDefaultPortions),
   Factor is Portions/RecipePortions,
