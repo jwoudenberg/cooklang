@@ -3,23 +3,6 @@
 :- style_check(-discontiguous).
 :- use_module(library(md/md_parse)).
 
-% Bolognese
-
-recipe("Spaghetti bolognese a la mama", 4).
-contains("Spaghetti bolognese a la mama", "1 blikje tomatenblokjes").
-contains("Spaghetti bolognese a la mama", "100 g spaghetti").
-contains("Spaghetti bolognese a la mama", "400g gehakt").
-contains("Spaghetti bolognese a la mama", "2kg kaas").
-
-% Aubergineschotel
-
-recipe("Aubergineschotel met kaas", 2).
-contains("Aubergineschotel met kaas", "1.5 aubergines").
-contains("Aubergineschotel met kaas", "200g kaas").
-contains("Aubergineschotel met kaas", "1 blikje tomatenblokjes").
-
-% Helpers
-
 parse_recipe(Path) :-
   open("/dev/stdout", append, Stream),
   parse_recipe(Stream, Path),
