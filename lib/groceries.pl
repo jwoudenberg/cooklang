@@ -1,4 +1,4 @@
-:- module(groceries, [mealplan/1, search_recipe/2, grocery_list/2]).
+:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, grocery_list/2]).
 
 % Example usage:
 %
@@ -15,6 +15,46 @@ sublist([X|Xs], [Y|Ys]) :-
 
 recipe(Query) :-
   find_recipe(Query, _).
+
+% For use in combination with mealplan.
+%
+%     meat(pork)
+%     meat(beef)
+%     meat(chicken)
+%
+%     ?- mealplan([Mo, Tu]), without(Tu, meat).
+without(Query, Goal) :-
+  find_recipe(Query, Name),
+  ingredients(Name, Ingredients),
+  maplist(get_ingredient, Ingredients, IngredientNames),
+  maplist(ingredient_without(Goal), IngredientNames).
+
+ingredient_without(Goal, I) :-
+  findall(V, call(Goal, V), Is),
+  maplist(not_sub_string(I), Is).
+
+% For use in combination with mealplan.
+%
+%     meat(pork)
+%     meat(beef)
+%     meat(chicken)
+%
+%     ?- mealplan([Mo, Tu]), with(Tu, meat).
+with(Query, Goal) :-
+  find_recipe(Query, Name),
+  ingredients(Name, Ingredients),
+  maplist(get_ingredient, Ingredients, IngredientNames),
+  include(ingredient_with(Goal), IngredientNames, [_ |_]).
+
+ingredient_with(Goal, I) :-
+  findall(V, call(Goal, V), Is),
+  include(yes_sub_string(I), Is, [_ | _]).
+
+yes_sub_string(I, X) :-
+  sub_string(I, _, _, _, X).
+
+not_sub_string(I, X) :-
+  \+ sub_string(I, _, _, _, X).
 
 search_recipe(Query, Name) :-
   portions(Name, _),

@@ -6,3 +6,10 @@ favorite("rajma").
 favorite("fesenjoon").
 favorite("dahl").
 favorite("hutspot").
+
+vega(R) :- without(R, vlees).
+
+vlees("kip").
+vlees("rund").
+vlees("varken").
+vlees("lam").
