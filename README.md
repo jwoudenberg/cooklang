@@ -21,7 +21,7 @@ The script will write the recipe knowledge base to `recipes.pl`. It's a human-re
 In this file you'll do your meal planning. There's an example file bundled with this repo to get you started. To use it:
 
 ```
-cp planning.pl.example planning.pl
+cp example/planning.pl planning.pl
 ```
 
 ## Getting your grocery list

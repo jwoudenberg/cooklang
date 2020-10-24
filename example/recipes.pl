@@ -1,4 +1,4 @@
-:- module(recipes_example, [portions/2, contains/2]).
+:- module(recipes, [portions/2, contains/2]).
 :- style_check(-discontiguous).
 
 portions("Spagetti Bolognese",4).

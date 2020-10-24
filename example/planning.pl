@@ -1,4 +1,4 @@
-:- use_module(recipes_example).
+:- use_module(example/recipes).
 :- use_module(lib/groceries).
 
 favorite("bolognese").
