@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/jwoudenberg/groceries.svg?branch=trunk)](https://travis-ci.org/jwoudenberg/groceries)
+
 # Grocery Management System
 
 A very serious system for generating grocery shopping lists. It parses a set of markdown recipe files into a Prolog knowledge base, which can then be queried to generate a shopping list.
