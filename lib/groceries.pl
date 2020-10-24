@@ -64,6 +64,19 @@ search_recipe(Query, Name) :-
 find_recipe(Query, Name) :-
   once(search_recipe(Query, Name)).
 
+:- begin_tests(find_recipe).
+
+test("single keyword") :-
+  find_recipe("Spaghetti", "Spaghetti Bolognese").
+
+test("multiple keywords") :-
+  find_recipe("broccoli curry", "Egg curry with broccoli").
+
+test("capitalization insensitive") :-
+  find_recipe("egG", "Egg curry with broccoli").
+
+:- end_tests(find_recipe).
+
 contains_keyword(Full, Keyword) :-
   string_lower(Full, FullLower),
   string_lower(Keyword, KeywordLower),
@@ -91,19 +104,67 @@ portioned_ingredients(recipe(Name, Portions), Ingredients) :-
 ingredients(Name, Ingredients) :-
   findall(Ingredient, contains(Name, Ingredient), Ingredients).
 
+:- begin_tests(ingredients).
+
+test(bolognese) :-
+  ingredients("Spaghetti Bolognese", [
+    ingredient(500, g, "minced beef"),
+    ingredient(100, g, "ham"),
+    ingredient(1, "onion"),
+    ingredient(1, toe, "garlic"),
+    ingredient(2, cans, "peeled tomatoes"),
+    ingredient("small can of tomato puree"),
+    ingredient(1, dl, "red whine"),
+    ingredient(1, "bay leaf"),
+    ingredient("oregano"),
+    ingredient("salt, peper, paprika"),
+    ingredient("grated cheese"),
+    ingredient(500, g, "spaghetti")
+  ]).
+
+:- end_tests(ingredients).
+
 dedupe(Duped, Deduped) :-
   empty_assoc(Init),
   foldl(add_ingredient,Duped,Init,DedupedAssoc),
   assoc_to_values(DedupedAssoc, Deduped).
 
+:- begin_tests(dedupe).
+
+test("empty list") :-
+  dedupe([], []).
+
+test("different ingredients") :-
+  dedupe(
+    [ingredient(5, g, sausage), ingredient(100, g, sugar)],
+    [ingredient(5, g, sausage), ingredient(100, g, sugar)]
+  ).
+
+test("same unites") :-
+  dedupe(
+    [ingredient(5, g, sugar), ingredient(100, g, sugar)],
+    [ingredient(105, g, sugar)]
+  ).
+
+test("convertable units") :-
+  dedupe(
+    [ingredient(5, kg, sugar), ingredient(100, g, sugar)],
+    [ingredient(5.1, kg, sugar)]
+  ).
+
+:- end_tests(dedupe).
+
 add_ingredient(Ingredient,AssocWithout,AssocWith) :-
   get_ingredient(Ingredient,Key),
-  get_assoc(Key, AssocWithout, Accum, AssocWith, Sum),
-  add_ingredients(Accum, Ingredient, Sum).
-add_ingredient(Ingredient,AssocWithout,AssocWith) :-
-  get_ingredient(Ingredient,Key),
-  \+ get_assoc(Key, AssocWithout, _),
-  put_assoc(Key, AssocWithout, Ingredient, AssocWith).
+  (
+    get_assoc(Key, AssocWithout, Accum, AssocWith, Sum) ->
+    (
+      add_ingredients(Accum, Ingredient, Sum)
+    );
+    (
+      put_assoc(Key, AssocWithout, Ingredient, AssocWith)
+    )
+  ).
 
 with_ingredient(P, I) :-
   get_ingredient(I, Ingredient),
@@ -115,17 +176,78 @@ get_ingredient(ingredient(Ingredient      ), Ingredient).
 
 add_ingredients(ingredient(I      ), ingredient(I      ), ingredient(I      )).
 add_ingredients(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
-add_ingredients(ingredient(X, U, I), ingredient(Y, U, I), ingredient(S, U, I)) :- S is X+Y.
-add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U, I)) :-
-  convert(quantity(Y, V), quantity(Y2, U)),
-  S is X+Y2.
-add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, V, I)) :-
-  convert(quantity(X, U), quantity(X2, V)),
-  S is X2+Y.
+add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, W, I)) :-
+  U = V ->
+  (
+    U = W,
+    S is X+Y
+  );
+  convert(quantity(Y, V), quantity(Y2, U)) ->
+  (
+    U = W,
+    S is X+Y2
+  );
+  convert(quantity(X, U), quantity(X2, V)) ->
+  (
+    V = W,
+    S is X2+Y
+  ).
+
+:- begin_tests(add_ingredients).
+
+test("without quantities") :-
+  add_ingredients(
+    ingredient(sugar),
+    ingredient(sugar),
+    ingredient(sugar)
+  ).
+
+test("without units") :-
+  add_ingredients(
+    ingredient(2, cars),
+    ingredient(3, cars),
+    ingredient(5, cars)
+  ).
+
+test("with units 1") :-
+  add_ingredients(
+    ingredient(100, g, sugar),
+    ingredient(5, kg, sugar),
+    ingredient(5.1, kg, sugar)
+  ).
+
+test("with units 2") :-
+  add_ingredients(
+    ingredient(5, kg, sugar),
+    ingredient(100, g, sugar),
+    ingredient(5.1, kg, sugar)
+  ).
+
+:- end_tests(add_ingredients).
 
 multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
 multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Factor.
 multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
 
-convert(quantity(X, gram), quantity(X, g )).
-convert(quantity(X, g   ), quantity(Y, kg)) :- Y is X/1000.
+conversion(quantity(X, gram), quantity(X, g)).
+conversion(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
+
+% Able to perform a chain of multiple conversions.
+convert(quantity(X, U), quantity(Y, V)) :-
+  conversion(quantity(X, U), quantity(Y, V)) ->
+  true;
+  (
+    conversion(quantity(X, U), quantity(Z, W)),
+    convert(quantity(Z, W), quantity(Y, V))
+  ) ->
+  true.
+
+:- begin_tests(convert).
+
+test("direct conversion") :-
+  convert(quantity(100, g), quantity(0.1, kg)).
+
+test("conversion in multiple steps") :-
+  convert(quantity(100, gram), quantity(0.1, kg)).
+
+:- end_tests(convert).

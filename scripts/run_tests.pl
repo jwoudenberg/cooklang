@@ -1,7 +1,9 @@
 #!/usr/bin/env swipl
 
 :- initialization(main).
+:- use_module(example/recipes).
 :- use_module(lib/recipe_parsing).
+:- use_module(lib/groceries).
 
 main :-
   run_tests(),

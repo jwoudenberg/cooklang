@@ -1,19 +1,19 @@
 :- module(recipes, [portions/2, contains/2]).
 :- style_check(-discontiguous).
 
-portions("Spagetti Bolognese",4).
-contains("Spagetti Bolognese",ingredient(500,g,"minced beef")).
-contains("Spagetti Bolognese",ingredient(100,g,"ham")).
-contains("Spagetti Bolognese",ingredient(1,"onion")).
-contains("Spagetti Bolognese",ingredient(1,toe,"garlic")).
-contains("Spagetti Bolognese",ingredient(2,cans,"peeled tomatoes")).
-contains("Spagetti Bolognese",ingredient("small can of taomatoo puree")).
-contains("Spagetti Bolognese",ingredient(1,dl,"red whine")).
-contains("Spagetti Bolognese",ingredient(1,"bay leaf")).
-contains("Spagetti Bolognese",ingredient("oregano")).
-contains("Spagetti Bolognese",ingredient("salt, peper, paprika")).
-contains("Spagetti Bolognese",ingredient("grated cheese")).
-contains("Spagetti Bolognese",ingredient(500,g,"spaghetti")).
+portions("Spaghetti Bolognese",4).
+contains("Spaghetti Bolognese",ingredient(500,g,"minced beef")).
+contains("Spaghetti Bolognese",ingredient(100,g,"ham")).
+contains("Spaghetti Bolognese",ingredient(1,"onion")).
+contains("Spaghetti Bolognese",ingredient(1,toe,"garlic")).
+contains("Spaghetti Bolognese",ingredient(2,cans,"peeled tomatoes")).
+contains("Spaghetti Bolognese",ingredient("small can of tomato puree")).
+contains("Spaghetti Bolognese",ingredient(1,dl,"red whine")).
+contains("Spaghetti Bolognese",ingredient(1,"bay leaf")).
+contains("Spaghetti Bolognese",ingredient("oregano")).
+contains("Spaghetti Bolognese",ingredient("salt, peper, paprika")).
+contains("Spaghetti Bolognese",ingredient("grated cheese")).
+contains("Spaghetti Bolognese",ingredient(500,g,"spaghetti")).
 
 portions("Egg curry with broccoli",2).
 contains("Egg curry with broccoli",ingredient(4,"eggs")).
