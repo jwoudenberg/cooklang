@@ -1,4 +1,38 @@
-:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, grocery_list/2]).
+:- module(groceries, [next_meal/1, with/2, without/2, search_recipe/2, grocery_list/2]).
+
+% Get a list of your favorites in decreasing order of what you haven't eaten
+% in a while.
+next_meal(RecipesSorted) :-
+  findall(R, favorite(R), Favorites),
+  maplist(find_recipe, Favorites, Recipes),
+  predsort(order_recipes, Recipes, RecipesSorted).
+
+order_recipes(Order, Recipe1, Recipe2) :-
+  recency_score(Recipe1, Score1),
+  recency_score(Recipe2, Score2),
+  compare(Order, Score1, Score2).
+
+recency_score(Recipe, Score) :-
+  findall(D, planned_full_name(D, Recipe), Dates),
+  maplist(recency_score_for_date, Dates, Scores),
+  sumlist(Scores, Score).
+
+planned_full_name(Date, Full) :-
+  planned(Date, Short, _),
+  find_recipe(Short, Full).
+
+% Score each date based on how far away it is from now. The current time gets a
+% score of 1. That score is halved for each week into the future or past.
+%
+%   Two weeks from now: 0.25
+%   One week from now:  0.5
+%   Now:                1
+%   One week ago:       0.5
+%   Two weeks ago:      0.25
+recency_score_for_date(Date, Score) :-
+  date_time_stamp(Date, Timestamp),
+  get_time(Now),
+  Score is 1 / (1 + (abs(Now - Timestamp) / (3600 * 24 * 7))).
 
 % Example usage:
 %

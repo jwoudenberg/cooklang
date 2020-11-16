@@ -10,3 +10,7 @@ meat("chicken").
 meat("beef").
 meat("pork").
 meat("lamb").
+
+planned(date(2020,11,14), "bolognese", 2).
+planned(date(2020,11,11), "curry", 2).
+planned(date(2020,08,12), "curry", 2).
