@@ -121,11 +121,18 @@ contains_keyword(Full, Keyword) :-
   string_lower(Keyword, KeywordLower),
   sub_string(FullLower, _, _, _, KeywordLower).
 
-grocery_list(Queries, Groceries) :-
+grocery_list(FromDate, Groceries) :-
+  findall(Recipe, planned_from(FromDate, Recipe), Queries),
   maplist(parse_input, Queries, Recipes),
   maplist(portioned_ingredients, Recipes, NestedGroceries),
   append(NestedGroceries, DupedGroceries),
   dedupe(DupedGroceries, Groceries).
+
+planned_from(FromDate, recipe(Query, Portions)) :-
+  planned(PlannedDate, Query, Portions),
+  date_time_stamp(PlannedDate, PlannedTimestamp),
+  date_time_stamp(FromDate, FromTimestamp),
+  PlannedTimestamp >= FromTimestamp.
 
 parse_input(recipe(Query, Portions), recipe(Name, Portions)) :-
   find_recipe(Query, Name).
