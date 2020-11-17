@@ -1,13 +1,28 @@
-:- module(groceries, [next_meal/1, with/2, without/2, search_recipe/2, grocery_list/2]).
+:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, grocery_list/2]).
+
+% Example usage:
+%
+%     ?- mealplan([Mo, Tu, We, Th, Fr, Sa, Su]).
+mealplan(Plan) :-
+  get_time(Now),
+  findall(R, favorite(R), Favorites),
+  maplist(find_recipe, Favorites, Recipes),
+  recency_scores(Now, Recipes, ScoresByRecipe),
+  mealplan_helper(ScoresByRecipe, Plan).
+
+mealplan_helper(_, []).
+mealplan_helper(ScoresByRecipe, [First|Rest]) :-
+  next_meal(ScoresByRecipe, ScoresByRecipeAfter, First),
+  mealplan_helper(ScoresByRecipeAfter, Rest).
 
 % Get a list of your favorites in decreasing order of what you haven't eaten
 % in a while.
-next_meal(RecipesSorted) :-
-  findall(R, favorite(R), Favorites),
-  maplist(find_recipe, Favorites, Recipes),
-  get_time(Now),
-  recency_scores(Now, Recipes, ScoresByRecipe),
-  predsort(order_recipes(ScoresByRecipe), Recipes, RecipesSorted).
+next_meal(ScoresByRecipe, ScoresByRecipeAfter, Recipe) :-
+  assoc_to_keys(ScoresByRecipe, Recipes),
+  predsort(order_recipes(ScoresByRecipe), Recipes, OrderedRecipes),
+  member(Recipe, OrderedRecipes),
+  get_assoc(Recipe, ScoresByRecipe, Score, ScoresByRecipeAfter, ScoreAfter),
+  ScoreAfter is Score + 1.
 
 order_recipes(ScoresByRecipe, Order, Recipe1, Recipe2) :-
   get_assoc(Recipe1, ScoresByRecipe, Score1),
@@ -39,22 +54,6 @@ planned_full_name(Date, Full) :-
 recency_score_for_date(Now, Date, Score) :-
   date_time_stamp(Date, Timestamp),
   Score is 1 / (1 + (abs(Now - Timestamp) / (3600 * 24 * 7))).
-
-% Example usage:
-%
-%     ?- mealplan([Mo, Tu, We, Th, Fr, Sa, Su]).
-mealplan(Recipes) :-
-  findall(R, favorite(R), Favorites),
-  sublist(Recipes, Favorites),
-  maplist(recipe, Recipes).
-
-sublist([], _).
-sublist([X|Xs], [Y|Ys]) :-
-  (X = Y, sublist(Xs, Ys));
-  sublist([X|Xs], Ys).
-
-recipe(Query) :-
-  find_recipe(Query, _).
 
 % For use in combination with mealplan.
 %
