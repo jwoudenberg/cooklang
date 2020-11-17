@@ -5,16 +5,23 @@
 next_meal(RecipesSorted) :-
   findall(R, favorite(R), Favorites),
   maplist(find_recipe, Favorites, Recipes),
-  predsort(order_recipes, Recipes, RecipesSorted).
+  get_time(Now),
+  recency_scores(Now, Recipes, ScoresByRecipe),
+  predsort(order_recipes(ScoresByRecipe), Recipes, RecipesSorted).
 
-order_recipes(Order, Recipe1, Recipe2) :-
-  recency_score(Recipe1, Score1),
-  recency_score(Recipe2, Score2),
+order_recipes(ScoresByRecipe, Order, Recipe1, Recipe2) :-
+  get_assoc(Recipe1, ScoresByRecipe, Score1),
+  get_assoc(Recipe2, ScoresByRecipe, Score2),
   compare(Order, Score1, Score2).
 
-recency_score(Recipe, Score) :-
+recency_scores(Now, Recipes, ScoresByRecipe) :-
+  maplist(recency_score(Now), Recipes, Scores),
+  pairs_keys_values(RecipeScorePairs, Recipes, Scores),
+  list_to_assoc(RecipeScorePairs, ScoresByRecipe).
+
+recency_score(Now, Recipe, Score) :-
   findall(D, planned_full_name(D, Recipe), Dates),
-  maplist(recency_score_for_date, Dates, Scores),
+  maplist(recency_score_for_date(Now), Dates, Scores),
   sumlist(Scores, Score).
 
 planned_full_name(Date, Full) :-
@@ -29,9 +36,8 @@ planned_full_name(Date, Full) :-
 %   Now:                1
 %   One week ago:       0.5
 %   Two weeks ago:      0.25
-recency_score_for_date(Date, Score) :-
+recency_score_for_date(Now, Date, Score) :-
   date_time_stamp(Date, Timestamp),
-  get_time(Now),
   Score is 1 / (1 + (abs(Now - Timestamp) / (3600 * 24 * 7))).
 
 % Example usage:
