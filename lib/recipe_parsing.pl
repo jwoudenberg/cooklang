@@ -123,5 +123,22 @@ quantity_with_unit(String, Quantity, Unit) :-
   unit(Unit),
   number_string(Quantity, QuantityString).
 
+% SI units
 unit(g).
+unit(ml).
+unit(cl).
+unit(dl).
+unit(l).
+unit(liter).
 unit(kg).
+unit(kilogram).
+
+% Dutch 'units'
+unit(tl).
+unit(el).
+unit(kop).
+unit(teen).
+unit(tak).
+unit(bos).
+unit(mespunt).
+unit(blik).
