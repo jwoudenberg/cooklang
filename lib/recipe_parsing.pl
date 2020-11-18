@@ -40,7 +40,7 @@ parse_name(Name, Blocks) :-
 % - All the items in that list are separate ingredients.
 parse_ingredients(Ingredients, Blocks) :-
   member(ul(LiIngredients), Blocks),
-  maplist(without_li, LiIngredients, IngredientStrings),
+  maplist(unwrap, LiIngredients, IngredientStrings),
   maplist(parse_ingredient, IngredientStrings, Ingredients).
 
 parse_portions(Portions, Blocks) :-
@@ -49,15 +49,16 @@ parse_portions(Portions, Blocks) :-
   number_string(Portions, PortionsWord).
 parse_portions(1, _).
 
-without_li(li(Html), Contents) :-
-  contents(Html, Contents).
-
-contents(Html, Contents) :-
-  Html = \X ->
-    contents(X, Contents);
-  maplist(contents, Html, Results) ->
-    atomics_to_string(Results, '', Contents);
-    Html = Contents.
+unwrap(Html, Contents) :-
+  Html = li(Wrapped) ->
+  unwrap(Wrapped, Contents);
+  Html = p(Wrapped) ->
+  unwrap(Wrapped, Contents);
+  Html = \Wrapped ->
+  unwrap(Wrapped, Contents);
+  maplist(unwrap, Html, Results) ->
+  atomics_to_string(Results, '', Contents);
+  Html = Contents.
 
 :- begin_tests(parse_ingredient).
 
