@@ -62,16 +62,16 @@ contents(Html, Contents) :-
 :- begin_tests(parse_ingredient).
 
 test(with_unit) :-
-  parse_ingredient("200 g fluffy bits", ingredient(200, g, "fluffy bits")).
+  parse_ingredient("200 g fluffy bits, thinly sliced", ingredient(200, g, "fluffy bits")).
 
 test(with_unit_attached) :-
-  parse_ingredient("200g fluffy bits", ingredient(200, g, "fluffy bits")).
+  parse_ingredient("200g fluffy bits, thinly sliced", ingredient(200, g, "fluffy bits")).
 
 test(without_unit) :-
-  parse_ingredient("200 fluffy bits", ingredient(200, "fluffy bits")).
+  parse_ingredient("200 fluffy bits, thinly sliced", ingredient(200, "fluffy bits")).
 
 test(without_quantity) :-
-  parse_ingredient("fluffy bits", ingredient("fluffy bits")).
+  parse_ingredient("fluffy bits, thinly sliced", ingredient("fluffy bits")).
 
 :- end_tests(parse_ingredient).
 
@@ -83,7 +83,8 @@ parse_ingredient(String, I) :-
   ) ->
   (
     number_string(Quantity, QuantityWord),
-    atomics_to_string(IngredientWords, ' ', Ingredient),
+    atomics_to_string(IngredientWords, ' ', DirtyIngredient),
+    up_to_comma(DirtyIngredient, Ingredient),
     I = ingredient(Quantity, Unit, Ingredient)
   );
   (
@@ -91,7 +92,8 @@ parse_ingredient(String, I) :-
     quantity_with_unit(QuantityWord, Quantity, Unit)
   ) ->
   (
-    atomics_to_string(IngredientWords, ' ', Ingredient),
+    atomics_to_string(IngredientWords, ' ', DirtyIngredient),
+    up_to_comma(DirtyIngredient, Ingredient),
     I = ingredient(Quantity, Unit, Ingredient)
   );
   (
@@ -99,12 +101,20 @@ parse_ingredient(String, I) :-
     number_string(Quantity, QuantityWord)
   ) ->
   (
-    atomics_to_string(IngredientWords, ' ', Ingredient),
+    atomics_to_string(IngredientWords, ' ', DirtyIngredient),
+    up_to_comma(DirtyIngredient, Ingredient),
     I = ingredient(Quantity, Ingredient)
   );
   (
-    I = ingredient(String)
+    up_to_comma(String, Ingredient),
+    I = ingredient(Ingredient)
   ).
+
+% Provide the part of the sentence up to the first comma.
+up_to_comma(Sentence, UpToComma) :-
+  split_string(Sentence, ",", "", [UpToComma|_]) ->
+    true;
+    Sentence = UpToComma.
 
 quantity_with_unit(String, Quantity, Unit) :-
   string_concat(QuantityString, UnitString, String),

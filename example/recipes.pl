@@ -11,7 +11,7 @@ contains("Spaghetti Bolognese",ingredient("small can of tomato puree")).
 contains("Spaghetti Bolognese",ingredient(1,dl,"red whine")).
 contains("Spaghetti Bolognese",ingredient(1,"bay leaf")).
 contains("Spaghetti Bolognese",ingredient("oregano")).
-contains("Spaghetti Bolognese",ingredient("salt, peper, paprika")).
+contains("Spaghetti Bolognese",ingredient("salt")).
 contains("Spaghetti Bolognese",ingredient("grated cheese")).
 contains("Spaghetti Bolognese",ingredient(500,g,"spaghetti")).
 

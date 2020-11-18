@@ -176,7 +176,7 @@ test(bolognese) :-
     ingredient(1, dl, "red whine"),
     ingredient(1, "bay leaf"),
     ingredient("oregano"),
-    ingredient("salt, peper, paprika"),
+    ingredient("salt"),
     ingredient("grated cheese"),
     ingredient(500, g, "spaghetti")
   ]).
