@@ -27,7 +27,7 @@ next_meal(ScoresByRecipe, ScoresByRecipeAfter, Recipe) :-
 order_recipes(ScoresByRecipe, Order, Recipe1, Recipe2) :-
   get_assoc(Recipe1, ScoresByRecipe, Score1),
   get_assoc(Recipe2, ScoresByRecipe, Score2),
-  compare(Order, Score1, Score2).
+  compare(Order, [Score1, Recipe1], [Score2, Recipe2]).
 
 recency_scores(Now, Recipes, ScoresByRecipe) :-
   maplist(recency_score(Now), Recipes, Scores),
