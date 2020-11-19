@@ -89,14 +89,20 @@ test(with_fractional_quantity) :-
 test(with_utf8_fractions) :-
   parse_ingredient("½ fluffy bits", ingredient(0.5, "fluffy bits")).
 
+test(with_diminuitive_unit) :-
+  parse_ingredient("1 kopje fluffy bits", ingredient(1, kop, "fluffy bits")).
+
+test(with_weirdly_cased_unit) :-
+  parse_ingredient("1 LiTER fluffy bits", ingredient(1, l, "fluffy bits")).
+
 :- end_tests(parse_ingredient).
 
 parse_ingredient(String, I) :-
   (
-    split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
-    atom_string(Unit, UnitWord),
+    split_string(String, " ", "", [QuantityWord, UnitString | IngredientWords]),
+    atom_string(UnitWord, UnitString),
     quantity_string(Quantity, QuantityWord),
-    unit(Unit)
+    unit(Unit, UnitWord)
   ) ->
   (
     atomics_to_string(IngredientWords, ' ', DirtyIngredient),
@@ -128,7 +134,8 @@ parse_ingredient(String, I) :-
 
 quantity_string(0.5, "½").
 quantity_string(0.25, "¼").
-quantity_string(0.5, "halve").
+quantity_string(0.5, Halve) :-
+  string_lower(Halve, "halve").
 quantity_string(Quantity, String) :-
   number_string(Quantity, String) ->
   true;
@@ -159,26 +166,38 @@ up_to_comma(Sentence, UpToComma) :-
 
 quantity_with_unit(String, Quantity, Unit) :-
   string_concat(QuantityString, UnitString, String),
-  atom_string(Unit, UnitString),
-  unit(Unit),
+  atom_string(UnitWord, UnitString),
+  unit(Unit, UnitWord),
   number_string(Quantity, QuantityString).
 
+unit(Unit, UnitString) :-
+  string_lower(UnitString, UnitStringLower),
+  unit_helper(Unit, UnitStringLower).
+
+unit_helper(Unit, Unit) :- base_unit(Unit).
+unit_helper(Unit, UnitWord) :-
+  base_unit(Unit),
+  string_concat(Unit, _, UnitWord).
+unit_helper(kg, kilogram).
+unit_helper(g, gram).
+unit_helper(l, liter).
+unit_helper(tl, theelepel).
+unit_helper(el, eetlepel).
+
 % SI units
-unit(g).
-unit(ml).
-unit(cl).
-unit(dl).
-unit(l).
-unit(liter).
-unit(kg).
-unit(kilogram).
+base_unit(g).
+base_unit(ml).
+base_unit(cl).
+base_unit(dl).
+base_unit(l).
+base_unit(kg).
 
 % Dutch 'units'
-unit(tl).
-unit(el).
-unit(kop).
-unit(teen).
-unit(tak).
-unit(bos).
-unit(mespunt).
-unit(blik).
+base_unit(tl).
+base_unit(el).
+base_unit(kop).
+base_unit(teen).
+base_unit(tak).
+base_unit(bos).
+base_unit(mespunt).
+base_unit(blik).
