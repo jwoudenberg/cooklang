@@ -46,7 +46,7 @@ parse_ingredients(Ingredients, Blocks) :-
 parse_portions(Portions, Blocks) :-
   member(p([\[PortionsLine]]), Blocks),
   sub_string(PortionsLine, _, _, _, PortionsWord),
-  number_string(Portions, PortionsWord).
+  quantity_string(Portions, PortionsWord).
 parse_portions(1, _).
 
 unwrap(Html, Contents) :-
@@ -88,6 +88,9 @@ test(with_fractional_quantity) :-
 
 test(with_utf8_fractions) :-
   parse_ingredient("½ fluffy bits", ingredient(0.5, "fluffy bits")).
+
+test(with_fraction_word) :-
+  parse_ingredient("half fluffy bits", ingredient(0.5, "fluffy bits")).
 
 test(with_diminuitive_unit) :-
   parse_ingredient("1 kopje fluffy bits", ingredient(1, kop, "fluffy bits")).
@@ -136,6 +139,8 @@ quantity_string(0.5, "½").
 quantity_string(0.25, "¼").
 quantity_string(0.5, Halve) :-
   string_lower(Halve, "halve").
+quantity_string(0.5, Half) :-
+  string_lower(Half, "half").
 quantity_string(Quantity, String) :-
   number_string(Quantity, String) ->
   true;
@@ -168,7 +173,7 @@ quantity_with_unit(String, Quantity, Unit) :-
   string_concat(QuantityString, UnitString, String),
   atom_string(UnitWord, UnitString),
   unit(Unit, UnitWord),
-  number_string(Quantity, QuantityString).
+  quantity_string(Quantity, QuantityString).
 
 unit(Unit, UnitString) :-
   string_lower(UnitString, UnitStringLower),
@@ -201,3 +206,5 @@ base_unit(tak).
 base_unit(bos).
 base_unit(mespunt).
 base_unit(blik).
+base_unit(bak).
+base_unit(snuf).
