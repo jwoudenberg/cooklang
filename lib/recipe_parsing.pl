@@ -98,6 +98,9 @@ test(with_diminuitive_unit) :-
 test(with_weirdly_cased_unit) :-
   parse_ingredient("1 LiTER fluffy bits", ingredient(1, l, "fluffy bits")).
 
+test(with_compound_unit) :-
+  parse_ingredient("2 eetlepeltjes fluffy bits", ingredient(2, el, "fluffy bits")).
+
 :- end_tests(parse_ingredient).
 
 parse_ingredient(String, I) :-
@@ -181,13 +184,15 @@ unit(Unit, UnitString) :-
 
 unit_helper(Unit, Unit) :- base_unit(Unit).
 unit_helper(Unit, UnitWord) :-
-  base_unit(Unit),
-  string_concat(Unit, _, UnitWord).
-unit_helper(kg, kilogram).
-unit_helper(g, gram).
-unit_helper(l, liter).
-unit_helper(tl, theelepel).
-unit_helper(el, eetlepel).
+  alias_unit(Unit, UnitRoot),
+  string_concat(UnitRoot, _, UnitWord).
+
+alias_unit(Unit, Unit) :- base_unit(Unit).
+alias_unit(kg, kilogram).
+alias_unit(g, gram).
+alias_unit(l, liter).
+alias_unit(tl, theelepel).
+alias_unit(el, eetlepel).
 
 % SI units
 base_unit(g).
