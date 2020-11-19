@@ -4,6 +4,8 @@
 
 A very serious system for generating grocery shopping lists. It parses a set of markdown recipe files into a Prolog knowledge base, which can then be queried to generate a shopping list.
 
+More a demo than a library. I use this myself and I'm Dutch, and some of the parsing codes makes special allowances for the Dutch language.
+
 ## Setup
 
 Either use [Nix][nix] or download [SWI-Prolog][swi-prolog] by hand. Then run the `scripts/install.pl` to fetch Prolog dependencies.

@@ -101,6 +101,9 @@ test(with_weirdly_cased_unit) :-
 test(with_compound_unit) :-
   parse_ingredient("2 eetlepeltjes fluffy bits", ingredient(2, el, "fluffy bits")).
 
+test(unit_without_quantity) :-
+  parse_ingredient("blikje fluffy bits", ingredient(1, blik, "fluffy bits")).
+
 :- end_tests(parse_ingredient).
 
 parse_ingredient(String, I) :-
@@ -132,6 +135,16 @@ parse_ingredient(String, I) :-
     atomics_to_string(IngredientWords, ' ', DirtyIngredient),
     up_to_comma(DirtyIngredient, Ingredient),
     I = ingredient(Quantity, Ingredient)
+  );
+  (
+    split_string(String, " ", "", [UnitString | IngredientWords]),
+    atom_string(UnitWord, UnitString),
+    unit(Unit, UnitWord)
+  ) ->
+  (
+    atomics_to_string(IngredientWords, ' ', DirtyIngredient),
+    up_to_comma(DirtyIngredient, Ingredient),
+    I = ingredient(1, Unit, Ingredient)
   );
   (
     up_to_comma(String, Ingredient),
@@ -213,3 +226,7 @@ base_unit(mespunt).
 base_unit(blik).
 base_unit(bak).
 base_unit(snuf).
+base_unit(pluk).
+base_unit(fles).
+base_unit(doos).
+base_unit(zak).
