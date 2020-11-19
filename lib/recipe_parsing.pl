@@ -74,16 +74,31 @@ test(without_unit) :-
 test(without_quantity) :-
   parse_ingredient("fluffy bits, thinly sliced", ingredient("fluffy bits")).
 
+test(with_dot_quantity) :-
+  parse_ingredient("2.5 fluffy bits", ingredient(2.5, "fluffy bits")).
+
+test(with_comma_quantity) :-
+  parse_ingredient("2,5 fluffy bits", ingredient(2.5, "fluffy bits")).
+
+test(with_range_quantity) :-
+  parse_ingredient("2-3 fluffy bits", ingredient(2.5, "fluffy bits")).
+
+test(with_fractional_quantity) :-
+  parse_ingredient("1/4 fluffy bits", ingredient(0.25, "fluffy bits")).
+
+test(with_utf8_fractions) :-
+  parse_ingredient("½ fluffy bits", ingredient(0.5, "fluffy bits")).
+
 :- end_tests(parse_ingredient).
 
 parse_ingredient(String, I) :-
   (
     split_string(String, " ", "", [QuantityWord, UnitWord | IngredientWords]),
     atom_string(Unit, UnitWord),
+    quantity_string(Quantity, QuantityWord),
     unit(Unit)
   ) ->
   (
-    number_string(Quantity, QuantityWord),
     atomics_to_string(IngredientWords, ' ', DirtyIngredient),
     up_to_comma(DirtyIngredient, Ingredient),
     I = ingredient(Quantity, Unit, Ingredient)
@@ -99,7 +114,7 @@ parse_ingredient(String, I) :-
   );
   (
     split_string(String, " ", "", [QuantityWord | IngredientWords]),
-    number_string(Quantity, QuantityWord)
+    quantity_string(Quantity, QuantityWord)
   ) ->
   (
     atomics_to_string(IngredientWords, ' ', DirtyIngredient),
@@ -109,6 +124,31 @@ parse_ingredient(String, I) :-
   (
     up_to_comma(String, Ingredient),
     I = ingredient(Ingredient)
+  ).
+
+quantity_string(0.5, "½").
+quantity_string(0.25, "¼").
+quantity_string(0.5, "halve").
+quantity_string(Quantity, String) :-
+  number_string(Quantity, String) ->
+  true;
+  (
+    re_replace(",", ".", String, DottedString),
+    number_string(Quantity, DottedString)
+  ) ->
+  true;
+  (
+    split_string(String, "/", "", [NumeratorString, DenominatorString]),
+    number_string(Numerator, NumeratorString),
+    number_string(Denominator, DenominatorString),
+    Quantity is Numerator / Denominator
+  ) ->
+  true;
+  (
+    split_string(String, "-", "", [LowerString, UpperString]),
+    number_string(Lower, LowerString),
+    number_string(Upper, UpperString),
+    Quantity is (Lower + Upper) / 2
   ).
 
 % Provide the part of the sentence up to the first comma.
