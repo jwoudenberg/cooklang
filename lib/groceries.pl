@@ -1,4 +1,4 @@
-:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, print_grocery_list/1]).
+:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, print_grocery_list/0]).
 
 % Example usage:
 %
@@ -121,8 +121,9 @@ contains_keyword(Full, Keyword) :-
   string_lower(Keyword, KeywordLower),
   sub_string(FullLower, _, _, _, KeywordLower).
 
-print_grocery_list(FromDate) :-
+print_grocery_list :-
   open('groceries.txt', append, Stream),
+  grocery_list_from(FromDate),
   grocery_list(FromDate, Groceries),
   maplist(print_grocery(Stream), Groceries),
   close(Stream).
