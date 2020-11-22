@@ -122,7 +122,7 @@ contains_keyword(Full, Keyword) :-
   sub_string(FullLower, _, _, _, KeywordLower).
 
 print_grocery_list(FromDate) :-
-  open('groceries.txt', write, Stream),
+  open('groceries.txt', append, Stream),
   grocery_list(FromDate, Groceries),
   maplist(print_grocery(Stream), Groceries),
   close(Stream).
