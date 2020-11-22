@@ -148,12 +148,8 @@ planned_from(FromDate, recipe(Query, Portions)) :-
   date_time_stamp(FromDate, FromTimestamp),
   PlannedTimestamp >= FromTimestamp.
 
-parse_input(recipe(Query, Portions), recipe(Name, Portions)) :-
-  find_recipe(Query, Name).
-parse_input(Query, recipe(Name, DefaultPortions)) :-
-  atomic(Query),
-  find_recipe(Query, Name),
-  portions(Name, DefaultPortions).
+parse_input(recipe(RecipeQuery, Portions),  recipe(Name, Portions)) :-
+  find_recipe(RecipeQuery, Name).
 
 portioned_ingredients(recipe(Name, Portions), Ingredients) :-
   portions(Name, RecipePortions),
@@ -200,7 +196,7 @@ test("different ingredients") :-
     [ingredient(5, g, sausage), ingredient(100, g, sugar)]
   ).
 
-test("same unites") :-
+test("same units") :-
   dedupe(
     [ingredient(5, g, sugar), ingredient(100, g, sugar)],
     [ingredient(105, g, sugar)]
@@ -210,6 +206,12 @@ test("convertable units") :-
   dedupe(
     [ingredient(5, kg, sugar), ingredient(100, g, sugar)],
     [ingredient(5.1, kg, sugar)]
+  ).
+
+test("unconvertable units") :-
+  dedupe(
+    [ingredient(5, kg, sugar), ingredient(1, blikje, sugar)],
+    [ingredient("5 kg + 1 blikje", sugar)]
   ).
 
 :- end_tests(dedupe).
@@ -236,21 +238,25 @@ get_ingredient(ingredient(Ingredient      ), Ingredient).
 
 add_ingredients(ingredient(I      ), ingredient(I      ), ingredient(I      )).
 add_ingredients(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
-add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, W, I)) :-
+add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), Combined) :-
   U = V ->
   (
-    U = W,
-    S is X+Y
+    S is X+Y,
+    Combined = ingredient(S, U, I)
   );
   convert(quantity(Y, V), quantity(Y2, U)) ->
   (
-    U = W,
-    S is X+Y2
+    S is X+Y2,
+    Combined = ingredient(S, U, I)
   );
   convert(quantity(X, U), quantity(X2, V)) ->
   (
-    V = W,
-    S is X2+Y
+    S is X2+Y,
+    Combined = ingredient(S, V, I)
+  );
+  (
+    atomics_to_string([X, U, "+", Y, V], " ", W),
+    Combined = ingredient(W, I)
   ).
 
 :- begin_tests(add_ingredients).
