@@ -8,7 +8,7 @@ More a demo than a library. I use this myself and I'm Dutch, and some of the par
 
 ## Setup
 
-Either use [Nix][nix] or download [SWI-Prolog][swi-prolog] by hand. Then run the `scripts/install.pl` to fetch Prolog dependencies.
+Either use [Nix][nix] or download [SWI-Prolog][swi-prolog] by hand.
 
 ## Generating the ingredient knowledge base
 
@@ -32,7 +32,13 @@ cp example/planning.pl planning.pl
 
 This is still a work in progress. There's some functions already defined in `groceries.pl` if you want to take a look!
 
-## Develoment
+## Update prolog dependencies
+
+These are comitted to guard against pack website downtime.
+
+Then run the `scripts/install.pl` to fetch Prolog dependencies.
+
+## Development
 
 Run tests by calling `scripts/run_tests.pl`.
 
