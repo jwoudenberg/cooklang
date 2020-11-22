@@ -214,6 +214,12 @@ test("unconvertable units") :-
     [ingredient("5 kg + 1 blikje", sugar)]
   ).
 
+test("unit and non-unit") :-
+  dedupe(
+    [ingredient(5, kg, sugar), ingredient(1, sugar)],
+    [ingredient("5 kg + 1", sugar)]
+  ).
+
 :- end_tests(dedupe).
 
 add_ingredient(Ingredient,AssocWithout,AssocWith) :-
@@ -236,28 +242,28 @@ get_ingredient(ingredient(_, _, Ingredient), Ingredient).
 get_ingredient(ingredient(_, Ingredient   ), Ingredient).
 get_ingredient(ingredient(Ingredient      ), Ingredient).
 
-add_ingredients(ingredient(I      ), ingredient(I      ), ingredient(I      )).
-add_ingredients(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
-add_ingredients(ingredient(X, U, I), ingredient(Y, V, I), Combined) :-
-  U = V ->
-  (
-    S is X+Y,
-    Combined = ingredient(S, U, I)
-  );
-  convert(quantity(Y, V), quantity(Y2, U)) ->
-  (
-    S is X+Y2,
-    Combined = ingredient(S, U, I)
-  );
-  convert(quantity(X, U), quantity(X2, V)) ->
-  (
-    S is X2+Y,
-    Combined = ingredient(S, V, I)
-  );
-  (
-    atomics_to_string([X, U, "+", Y, V], " ", W),
-    Combined = ingredient(W, I)
-  ).
+add_ingredients(I1, I2, IR) :-
+  once(add_ingredients_helper(I1, I2, IR)).
+
+add_ingredients_helper(ingredient(I      ), ingredient(I      ), ingredient(I      )).
+add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, U, I), ingredient(S, U, I)) :- S is X+Y.
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U, I)) :-
+  convert(quantity(Y, V), quantity(Y2, U)),
+  S is X+Y2.
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, V, I)) :-
+  convert(quantity(X, U), quantity(X2, V)),
+  S is X2+Y.
+add_ingredients_helper(I1, I2, ingredient(QR, I)) :-
+  get_ingredient(I1, I),
+  quantity_unit_string(I1, Q1),
+  quantity_unit_string(I2, Q2),
+  atomics_to_string([Q1, Q2], " + ", QR).
+
+quantity_unit_string(ingredient(_), "").
+quantity_unit_string(ingredient(Unit, _), Unit).
+quantity_unit_string(ingredient(Quantity, Unit, _), String) :-
+  atomics_to_string([Quantity, Unit], " ", String).
 
 :- begin_tests(add_ingredients).
 
