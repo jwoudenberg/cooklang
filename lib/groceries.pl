@@ -101,7 +101,12 @@ search_recipe(Query, Name) :-
   maplist(contains_keyword(Name), Keywords).
 
 find_recipe(Query, Name) :-
-  once(search_recipe(Query, Name)).
+  once(search_recipe(Query, Name)) ->
+  true;
+  (
+    format(atom(Exception), "Can't find recipe '~w'", [Query]),
+    throw(Exception)
+  ).
 
 :- begin_tests(find_recipe).
 
