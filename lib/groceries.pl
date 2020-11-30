@@ -246,7 +246,12 @@ add_ingredients(I1, I2, IR) :-
   once(add_ingredients_helper(I1, I2, IR)).
 
 add_ingredients_helper(ingredient(I      ), ingredient(I      ), ingredient(I      )).
-add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :- S is X+Y.
+add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :-
+  number(X),
+  number(Y),
+  S is X+Y.
+add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :-
+  append(X,Y,S).
 add_ingredients_helper(ingredient(X, U, I), ingredient(Y, U, I), ingredient(S, U, I)) :- S is X+Y.
 add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U, I)) :-
   convert(quantity(Y, V), quantity(Y2, U)),
