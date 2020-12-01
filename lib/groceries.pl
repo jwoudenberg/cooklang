@@ -311,8 +311,11 @@ multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
 multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Factor.
 multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
 
-conversion(quantity(X, gram), quantity(X, g)).
 conversion(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
+conversion(quantity(X, Unit), quantity(Y, Base)) :-
+  atom_concat("d", Base, Unit) -> Y is X / 10;
+  atom_concat("c", Base, Unit) -> Y is X / 100;
+  atom_concat("m", Base, Unit) -> Y is X / 1000.
 
 % Able to perform a chain of multiple conversions.
 convert(quantity(X, U), quantity(Y, V)) :-
@@ -329,7 +332,10 @@ convert(quantity(X, U), quantity(Y, V)) :-
 test("direct conversion") :-
   convert(quantity(100, g), quantity(0.1, kg)).
 
+test("SI conversion") :-
+  convert(quantity(100, cg), quantity(1, g)).
+
 test("conversion in multiple steps") :-
-  convert(quantity(100, gram), quantity(0.1, kg)).
+  convert(quantity(1000, dg), quantity(0.1, kg)).
 
 :- end_tests(convert).
