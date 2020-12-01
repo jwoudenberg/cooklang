@@ -312,6 +312,9 @@ multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Fa
 multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
 
 conversion(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
+conversion(quantity(X, el), quantity(Y, ml)) :- Y is X*5.
+conversion(quantity(X, tl), quantity(Y, ml)) :- Y is X*15.
+conversion(quantity(X, kop), quantity(Y, ml)) :- Y is X*200.
 conversion(quantity(X, Unit), quantity(Y, Base)) :-
   atom_concat("d", Base, Unit) -> Y is X / 10;
   atom_concat("c", Base, Unit) -> Y is X / 100;
