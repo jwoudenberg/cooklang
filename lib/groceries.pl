@@ -248,27 +248,31 @@ get_ingredient(ingredient(_, Ingredient   ), Ingredient).
 get_ingredient(ingredient(Ingredient      ), Ingredient).
 
 add_ingredients(I1, I2, IR) :-
-  once(add_ingredients_helper(I1, I2, IR)).
+  same_ingredient(I1, I2) -> once(add_ingredients_helper(I1, I2, IR));
+  add_ingredients_fallback(I1, I2, IR).
 
-add_ingredients_helper(ingredient(I      ), ingredient(I      ), ingredient(I      )).
-add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :-
+add_ingredients_helper(ingredient(I      ), ingredient(_      ), ingredient(I      )).
+add_ingredients_helper(ingredient(X, I   ), ingredient(Y, _   ), ingredient(S, I   )) :-
   number(X),
   number(Y),
   S is X+Y.
-add_ingredients_helper(ingredient(X, I   ), ingredient(Y, I   ), ingredient(S, I   )) :-
+add_ingredients_helper(ingredient(X, I   ), ingredient(Y, _   ), ingredient(S, I   )) :-
   append(X,Y,S).
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, U, I), ingredient(S, U, I)) :- S is X+Y.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U, I)) :-
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, U, _), ingredient(S, U, I)) :- S is X+Y.
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, U, I)) :-
   convert(quantity(Y, V), quantity(Y2, U)),
   S is X+Y2.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, V, I)) :-
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, V, I)) :-
   convert(quantity(X, U), quantity(X2, V)),
   S is X2+Y.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, W, I)) :-
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, W, I)) :-
   convert(quantity(X, U), quantity(X2, W)),
   convert(quantity(Y, V), quantity(Y2, W)),
   S is X2+Y2.
-add_ingredients_helper(I1, I2, ingredient(QR, I)) :-
+add_ingredients_helper(I1, I2, IR) :-
+  add_ingredients_fallback(I1, I2, IR).
+
+add_ingredients_fallback(I1, I2, ingredient(QR, I)) :-
   get_ingredient(I1, I),
   quantity_unit_string(I1, Q1),
   quantity_unit_string(I2, Q2),
@@ -283,40 +287,60 @@ quantity_unit_string(ingredient(Quantity, Unit, _), String) :-
 
 test("without quantities") :-
   add_ingredients(
-    ingredient(sugar),
-    ingredient(sugar),
-    ingredient(sugar)
+    ingredient("sugar"),
+    ingredient("sugar"),
+    ingredient("sugar")
   ).
 
 test("without units") :-
   add_ingredients(
-    ingredient(2, cars),
-    ingredient(3, cars),
-    ingredient(5, cars)
+    ingredient(2, "cars"),
+    ingredient(3, "cars"),
+    ingredient(5, "cars")
   ).
 
 test("with units 1") :-
   add_ingredients(
-    ingredient(100, g, sugar),
-    ingredient(5, kg, sugar),
-    ingredient(5.1, kg, sugar)
+    ingredient(100, g, "sugar"),
+    ingredient(5, kg, "sugar"),
+    ingredient(5.1, kg, "sugar")
   ).
 
 test("with units 2") :-
   add_ingredients(
-    ingredient(5, kg, sugar),
-    ingredient(100, g, sugar),
-    ingredient(5.1, kg, sugar)
+    ingredient(5, kg, "sugar"),
+    ingredient(100, g, "sugar"),
+    ingredient(5.1, kg, "sugar")
   ).
 
 test("with 2 non-standard units") :-
   add_ingredients(
-    ingredient(1, el, sugar),
-    ingredient(2, tl, sugar),
-    ingredient(25, ml, sugar)
+    ingredient(1, el, "sugar"),
+    ingredient(2, tl, "sugar"),
+    ingredient(25, ml, "sugar")
+  ).
+
+test("with 2 differently spelled ingredient") :-
+  add_ingredients(
+    ingredient(1, "banaan"),
+    ingredient(2, "bananen"),
+    ingredient(3, "banaan")
   ).
 
 :- end_tests(add_ingredients).
+
+same_ingredient(Q1, Q2) :-
+  get_ingredient(Q1, I1),
+  get_ingredient(Q2, I2),
+  dutch_root(I1, Root),
+  dutch_root(I2, Root).
+
+dutch_root(Ingredient, Root) :-
+  string_concat(Base, "en", Ingredient) -> dutch_root(Base, Root);
+  string_concat(Base, "s", Ingredient) -> dutch_root(Base, Root);
+  string_concat(Base, "je", Ingredient) -> dutch_root(Base, Root);
+  re_replace("([aeiou]){2}"/g, "\\1", Ingredient, Root) -> true;
+  Ingredient = Root.
 
 multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
 multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Factor.
