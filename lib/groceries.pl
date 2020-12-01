@@ -264,6 +264,10 @@ add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, U
 add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, V, I)) :-
   convert(quantity(X, U), quantity(X2, V)),
   S is X2+Y.
+add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, I), ingredient(S, W, I)) :-
+  convert(quantity(X, U), quantity(X2, W)),
+  convert(quantity(Y, V), quantity(Y2, W)),
+  S is X2+Y2.
 add_ingredients_helper(I1, I2, ingredient(QR, I)) :-
   get_ingredient(I1, I),
   quantity_unit_string(I1, Q1),
@@ -305,6 +309,13 @@ test("with units 2") :-
     ingredient(5.1, kg, sugar)
   ).
 
+test("with 2 non-standard units") :-
+  add_ingredients(
+    ingredient(1, el, sugar),
+    ingredient(2, tl, sugar),
+    ingredient(25, ml, sugar)
+  ).
+
 :- end_tests(add_ingredients).
 
 multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
@@ -312,8 +323,8 @@ multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Fa
 multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
 
 conversion(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
-conversion(quantity(X, el), quantity(Y, ml)) :- Y is X*5.
-conversion(quantity(X, tl), quantity(Y, ml)) :- Y is X*15.
+conversion(quantity(X, el), quantity(Y, ml)) :- Y is X*15.
+conversion(quantity(X, tl), quantity(Y, ml)) :- Y is X*5.
 conversion(quantity(X, kop), quantity(Y, ml)) :- Y is X*200.
 conversion(quantity(X, Unit), quantity(Y, Base)) :-
   atom_concat("d", Base, Unit) -> Y is X / 10;
