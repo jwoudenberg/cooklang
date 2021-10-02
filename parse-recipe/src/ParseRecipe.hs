@@ -3,10 +3,13 @@
 module ParseRecipe where
 
 import qualified Data.Attoparsec.Text as P
+import Data.Foldable (for_, traverse_)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
+import Data.List (intersperse)
 import Data.Text (Text, strip)
 import qualified Data.Text.IO
+import System.IO (Handle, hPutStr, stdout)
 import Text.Pandoc
 
 main :: IO ()
@@ -20,7 +23,7 @@ main = do
     case extract (fmap Identity) recipeMaybe of
       Nothing -> fail "Recipe was missing section"
       Just recipe' -> pure recipe'
-  print (ingredients recipe)
+  printDatalogProgram stdout (recipeFacts recipe)
 
 testFile :: FilePath
 testFile = "../../hiskevriendelijk/docs/hoofdgerechten/fesenjoon.md"
@@ -180,3 +183,63 @@ siUnitParser =
       P.asciiCI "liter" *> pure Liter,
       P.asciiCI "l" *> pure Liter
     ]
+
+data DatalogFact = DatalogFact
+  { relation :: Text,
+    constants :: [DatalogConstant]
+  }
+
+data DatalogConstant
+  = String Text
+  | Number Double
+
+recipeFacts :: Recipe Identity -> [DatalogFact]
+recipeFacts recipe =
+  let recipeName = runIdentity (title recipe)
+   in DatalogFact
+        "portions"
+        [ String recipeName,
+          Number (runIdentity (portions recipe))
+        ] :
+      fmap (ingredientFact recipeName) (runIdentity (ingredients recipe))
+
+ingredientFact :: Text -> Ingredient -> DatalogFact
+ingredientFact recipe ingredient =
+  case ingredient of
+    Ingredient {name, quantity = Nothing} ->
+      DatalogFact "ingredient" [String recipe, String name]
+    Ingredient {name, quantity = Just Quantity {amount, unit = Nothing}} ->
+      DatalogFact "ingredient" [String recipe, Number amount, String name]
+    Ingredient {name, quantity = Just Quantity {amount, unit = Just unit'}} ->
+      DatalogFact "ingredient" [String recipe, Number amount, String (unitToText unit'), String name]
+
+unitToText :: Unit -> Text
+unitToText unit' =
+  case unit' of
+    Milli siUnit -> "m" <> siUnitToText siUnit
+    Centi siUnit -> "c" <> siUnitToText siUnit
+    Deci siUnit -> "d" <> siUnitToText siUnit
+    Kilo siUnit -> "k" <> siUnitToText siUnit
+    SiUnit siUnit -> siUnitToText siUnit
+    Eetlepel -> "el"
+    Theelepel -> "tl"
+    Snuf -> "snuf"
+
+siUnitToText :: SiUnit -> Text
+siUnitToText siUnit =
+  case siUnit of
+    Gram -> "g"
+    Liter -> "l"
+
+printDatalogProgram :: Handle -> [DatalogFact] -> IO ()
+printDatalogProgram handle facts =
+  let p = Data.Text.IO.hPutStr handle
+      printFact fact =
+        case fact of
+          Number n -> hPutStr handle (show n)
+          String string -> p "\"" *> p string *> p "\""
+   in for_ facts $ \fact -> do
+        p (relation fact)
+        p "("
+        traverse_ id (intersperse (p ", ") (printFact <$> constants fact))
+        p ").\n"
