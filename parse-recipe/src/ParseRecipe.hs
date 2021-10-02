@@ -2,9 +2,10 @@
 
 module ParseRecipe where
 
+import qualified Data.Attoparsec.Text as P
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
-import Data.Text (Text)
+import Data.Text (Text, strip)
 import qualified Data.Text.IO
 import Text.Pandoc
 
@@ -19,14 +20,14 @@ main = do
     case extract (fmap Identity) recipeMaybe of
       Nothing -> fail "Recipe was missing section"
       Just recipe' -> pure recipe'
-  print (name recipe :: Identity Text)
+  print (ingredients recipe)
 
 testFile :: FilePath
 testFile = "../../hiskevriendelijk/docs/hoofdgerechten/fesenjoon.md"
 
 data Recipe m = Recipe
   { name :: m Text,
-    portions :: m Int,
+    portions :: m Float,
     ingredients :: m [Text],
     instructions :: m [Text]
   }
@@ -44,8 +45,15 @@ parseBlock block recipe =
   case block of
     Header 1 _ inlines ->
       recipe {name = Compose (fmap Just (toText [Plain inlines]))}
-    Para _ ->
-      recipe {portions = Compose (pure (Just 1))}
+    Para inlines ->
+      recipe
+        { portions = Compose $ do
+            paragraphText <- toText [Plain inlines]
+            case P.parse parsePortions paragraphText of
+              P.Fail _ _ _ -> pure Nothing
+              P.Partial _ -> pure Nothing
+              P.Done _ portions' -> pure (Just portions')
+        }
     BulletList items ->
       recipe {ingredients = Compose (fmap Just (traverse toText items))}
     OrderedList _ items ->
@@ -53,4 +61,10 @@ parseBlock block recipe =
     _ -> recipe
 
 toText :: [Block] -> PandocIO Text
-toText blocks = writePlain def (Pandoc mempty blocks)
+toText blocks = fmap strip $ writePlain def (Pandoc mempty blocks)
+
+parsePortions :: P.Parser Float
+parsePortions =
+  P.asciiCI "Voor "
+    *> fmap realToFrac P.scientific
+    <* P.choice [P.asciiCI " personen", P.asciiCI " persoon"]
