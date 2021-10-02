@@ -9,12 +9,26 @@ import Data.Functor.Identity (Identity (..))
 import Data.List (intersperse)
 import Data.Text (Text, strip)
 import qualified Data.Text.IO
+import qualified System.Environment
 import System.IO (Handle, hPutStr, stdout)
 import Text.Pandoc
 
 main :: IO ()
 main = do
-  markdownText <- Data.Text.IO.readFile testFile
+  args <- System.Environment.getArgs
+  case args of
+    ["--help"] -> showHelp
+    [path] -> run path
+    _ -> showHelp
+
+showHelp :: IO ()
+showHelp = do
+  Data.Text.IO.putStrLn "parse-recipe RECIPE"
+  Data.Text.IO.putStrLn "Parses a markdown file containing a recipe and prints a datalog representation of its ingredients to stdout."
+
+run :: FilePath -> IO ()
+run recipeFile = do
+  markdownText <- Data.Text.IO.readFile recipeFile
   (Pandoc _ blocks) <- runIOorExplode $ readMarkdown def markdownText
   let emptyRecipe = Recipe (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing))
   let recipePandoc = foldr parseBlock emptyRecipe blocks
@@ -24,9 +38,6 @@ main = do
       Nothing -> fail "Recipe was missing section"
       Just recipe' -> pure recipe'
   printDatalogProgram stdout (recipeFacts recipe)
-
-testFile :: FilePath
-testFile = "../../hiskevriendelijk/docs/hoofdgerechten/fesenjoon.md"
 
 data Recipe m = Recipe
   { title :: m Text,
