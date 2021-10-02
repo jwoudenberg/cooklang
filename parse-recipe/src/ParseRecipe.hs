@@ -12,13 +12,13 @@ main :: IO ()
 main = do
   markdownText <- Data.Text.IO.readFile testFile
   (Pandoc _ blocks) <- runIOorExplode $ readMarkdown def markdownText
-  let emptyRecipe = Recipe (Compose Nothing) (Compose Nothing) (Compose Nothing) (Compose Nothing)
-  let recipeMaybe = foldr parseBlock emptyRecipe blocks
-  recipePandoc <-
-    case extract getCompose recipeMaybe of
+  let emptyRecipe = Recipe (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing))
+  let recipePandoc = foldr parseBlock emptyRecipe blocks
+  recipeMaybe <- runIOorExplode $ extract getCompose recipePandoc
+  recipe <-
+    case extract (fmap Identity) recipeMaybe of
       Nothing -> fail "Recipe was missing section"
       Just recipe' -> pure recipe'
-  recipe <- extract (fmap Identity . runIOorExplode) recipePandoc
   print (name recipe :: Identity Text)
 
 testFile :: FilePath
@@ -39,17 +39,17 @@ extract f recipe =
     <*> f (ingredients recipe)
     <*> f (instructions recipe)
 
-parseBlock :: Block -> Recipe (Compose Maybe PandocIO) -> Recipe (Compose Maybe PandocIO)
+parseBlock :: Block -> Recipe (Compose PandocIO Maybe) -> Recipe (Compose PandocIO Maybe)
 parseBlock block recipe =
   case block of
     Header 1 _ inlines ->
-      recipe {name = Compose (Just (toText [Plain inlines]))}
+      recipe {name = Compose (fmap Just (toText [Plain inlines]))}
     Para _ ->
-      recipe {portions = Compose (Just (pure 1))}
+      recipe {portions = Compose (pure (Just 1))}
     BulletList items ->
-      recipe {ingredients = Compose (Just (traverse toText items))}
+      recipe {ingredients = Compose (fmap Just (traverse toText items))}
     OrderedList _ items ->
-      recipe {instructions = Compose (Just (traverse toText items))}
+      recipe {instructions = Compose (fmap Just (traverse toText items))}
     _ -> recipe
 
 toText :: [Block] -> PandocIO Text
