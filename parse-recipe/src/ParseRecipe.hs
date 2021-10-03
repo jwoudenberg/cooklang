@@ -117,7 +117,7 @@ toText blocks = fmap strip $ writePlain def (Pandoc mempty blocks)
 portionsParser :: P.Parser Double
 portionsParser =
   P.asciiCI "Voor "
-    *> fmap realToFrac P.scientific
+    *> double
     <* P.choice [P.asciiCI " personen", P.asciiCI " persoon"]
 
 parseIngredient :: Text -> Ingredient
@@ -139,7 +139,8 @@ amountParser :: P.Parser Double
 amountParser =
   P.choice
     [ fractionParser,
-      fmap realToFrac P.scientific,
+      double *> P.string "-" *> double,
+      double,
       P.string "enkele" *> pure 2,
       P.string "half" *> pure 0.5,
       P.string "halve" *> pure 0.5,
@@ -161,19 +162,20 @@ amountParser =
       P.char '⅛' *> pure (1 / 8),
       P.char '⅜' *> pure (3 / 8),
       P.char '⅝' *> pure (5 / 8),
-      P.char '⅞' *> pure (7 / 8),
-      amountParser *> P.string " tot " *> amountParser,
-      amountParser *> P.string "-" *> amountParser
+      P.char '⅞' *> pure (7 / 8)
     ]
+
+double :: P.Parser Double
+double = realToFrac <$> P.scientific
 
 fractionParser :: P.Parser Double
 fractionParser = do
-  enumerator <- P.scientific
+  enumerator <- double
   P.skipSpace
   _ <- P.string "/"
   P.skipSpace
-  denumerator <- P.scientific
-  pure (realToFrac enumerator / realToFrac denumerator)
+  denumerator <- double
+  pure (enumerator / denumerator)
 
 unitParser :: P.Parser Unit
 unitParser =
