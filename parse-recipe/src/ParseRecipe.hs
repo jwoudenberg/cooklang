@@ -203,20 +203,29 @@ unitParser =
         )
     )
 
-colloquialUnits :: [Text]
+colloquialUnits :: [[Text]]
 colloquialUnits =
-  [ "snuf",
-    "teen",
-    "tak",
-    "bos",
-    "plant",
-    "druppel"
+  [ ["blik", "blikje", "blikjes"],
+    ["snuf", "snufje"],
+    ["teen", "tenen", "teentje", "teentjes"],
+    ["tak", "takje", "takjes"],
+    ["bos", "bosje"],
+    ["plant", "plantje"],
+    ["druppel", "druppels"],
+    ["mespunt", "mespuntje", "mespuntjes"]
   ]
 
 colloquialUnitParser :: [P.Parser Unit]
 colloquialUnitParser =
   concatMap
-    (\unit -> optionallyDiminuitive (pure (Colloquial unit) <* P.asciiCI unit))
+    ( \unit ->
+        case unit of
+          [] -> []
+          (first : aliases) ->
+            fmap
+              (\alias -> pure (Colloquial first) <* P.asciiCI alias)
+              (first : aliases)
+    )
     colloquialUnits
 
 prefixedSiUnit :: (SiUnit -> Unit) -> Text -> [P.Parser Unit]
@@ -230,16 +239,6 @@ colloquial unit base =
 optionallyPlural :: P.Parser a -> [P.Parser a]
 optionallyPlural parser =
   [ parser <* P.asciiCI "s",
-    parser
-  ]
-
-optionallyDiminuitive :: P.Parser a -> [P.Parser a]
-optionallyDiminuitive parser =
-  [ parser <* P.asciiCI "jes",
-    parser <* P.asciiCI "je",
-    parser <* P.asciiCI "tjes",
-    parser <* P.asciiCI "tje",
-    parser <* P.asciiCI "s",
     parser
   ]
 
