@@ -8,7 +8,7 @@ import Data.Foldable (for_, traverse_)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
 import Data.List (intersperse)
-import Data.Text (Text, strip, unpack)
+import Data.Text (Text, strip, toLower, unpack)
 import qualified Data.Text.IO
 import qualified System.Environment
 import qualified System.Exit
@@ -125,7 +125,7 @@ portionsParser =
 parseIngredient :: Text -> Ingredient
 parseIngredient messyIngredientText =
   let ingredientText =
-        case P.parseOnly cleanupParser messyIngredientText of
+        case P.parseOnly cleanupParser (toLower messyIngredientText) of
           Left _ -> messyIngredientText
           Right cleanedIngredientText -> strip cleanedIngredientText
    in case P.parse (quantityParser <* P.skipSpace) ingredientText of
@@ -356,7 +356,15 @@ takeWord = do
   preWord <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
   word <- P.takeWhile Char.isAlpha
   spaces <- P.takeWhile Char.isSpace
-  pure (preWord <> word <> spaces)
+  pure (preWord <> maybeReplaceWord word <> spaces)
+
+maybeReplaceWord :: Text -> Text
+maybeReplaceWord word =
+  case word of
+    "ui" -> "uien"
+    "ei" -> "eieren"
+    "tomaat" -> "tomaten"
+    _ -> word
 
 toSkip :: P.Parser ()
 toSkip =
