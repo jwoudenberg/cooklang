@@ -141,6 +141,9 @@ amountParser =
     [ fractionParser,
       fmap realToFrac P.scientific,
       P.string "enkele" *> pure 2,
+      P.string "half" *> pure 0.5,
+      P.string "halve" *> pure 0.5,
+      P.string "kwart" *> pure 0.25,
       P.char '¼' *> pure (1 / 4),
       P.char '½' *> pure (1 / 2),
       P.char '¾' *> pure (3 / 4),
@@ -202,6 +205,7 @@ colloquialUnits =
     "teen",
     "tak",
     "bos",
+    "plant",
     "druppel"
   ]
 
