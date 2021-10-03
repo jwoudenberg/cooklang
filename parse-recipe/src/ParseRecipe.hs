@@ -352,11 +352,11 @@ cleanupParser = do
   if word == "" then P.takeText else fmap (word <>) cleanupParser
 
 takeWord :: P.Parser Text
-takeWord = fmap fst $
-  P.match $ do
-    _ <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
-    _ <- P.takeWhile Char.isAlpha
-    P.skipSpace
+takeWord = do
+  preWord <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
+  word <- P.takeWhile Char.isAlpha
+  spaces <- P.takeWhile Char.isSpace
+  pure (preWord <> word <> spaces)
 
 toSkip :: P.Parser ()
 toSkip =
