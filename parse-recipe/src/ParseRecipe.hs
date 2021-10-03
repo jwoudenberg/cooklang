@@ -141,6 +141,7 @@ amountParser =
   P.choice
     [ fractionParser,
       double *> P.string "-" *> double,
+      commaNumberParser,
       double,
       P.asciiCI "enkele" *> pure 2,
       P.asciiCI "paar" *> pure 2,
@@ -178,6 +179,14 @@ fractionParser = do
   P.skipSpace
   denumerator <- double
   pure (enumerator / denumerator)
+
+commaNumberParser :: P.Parser Double
+commaNumberParser = do
+  whole <- double
+  _ <- P.string ","
+  decimal <- double
+  let toDecimal n = if n > 1 then toDecimal (n / 10) else n
+  pure (whole + toDecimal decimal)
 
 unitParser :: P.Parser Unit
 unitParser =
