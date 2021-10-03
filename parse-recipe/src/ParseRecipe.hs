@@ -142,10 +142,11 @@ amountParser =
     [ fractionParser,
       double *> P.string "-" *> double,
       double,
-      P.string "enkele" *> pure 2,
-      P.string "half" *> pure 0.5,
-      P.string "halve" *> pure 0.5,
-      P.string "kwart" *> pure 0.25,
+      P.asciiCI "enkele" *> pure 2,
+      P.asciiCI "paar" *> pure 2,
+      P.asciiCI "half" *> pure 0.5,
+      P.asciiCI "halve" *> pure 0.5,
+      P.asciiCI "kwart" *> pure 0.25,
       P.char '¼' *> pure (1 / 4),
       P.char '½' *> pure (1 / 2),
       P.char '¾' *> pure (3 / 4),
@@ -212,6 +213,7 @@ colloquialUnits =
     ["tak", "takje", "takjes"],
     ["bos", "bosje"],
     ["plant", "plantje"],
+    ["blad", "blaadje", "blaadjes"],
     ["druppel", "druppels"],
     ["mespunt", "mespuntje", "mespuntjes"]
   ]
