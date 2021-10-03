@@ -364,8 +364,10 @@ toSkip =
   P.choice
     [ P.char ',' *> P.takeText *> pure (),
       P.char '(' *> P.skipWhile (/= ')') *> P.char ')' *> P.skipSpace,
+      P.asciiCI "groot" *> P.skipSpace,
       P.asciiCI "grote" *> P.skipSpace,
       P.asciiCI "middelgrote" *> P.skipSpace,
+      P.asciiCI "klein" *> P.skipSpace,
       P.asciiCI "kleine" *> P.skipSpace,
       P.asciiCI "rijpe" *> P.skipSpace,
       P.asciiCI "flinke" *> P.skipSpace,
