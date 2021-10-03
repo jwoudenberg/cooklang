@@ -1,0 +1,5 @@
+portions("Worteltaartsoep", 4.0).
+ingredient("Worteltaartsoep", 400.0, g, "wortels").
+ingredient("Worteltaartsoep", 2.5, "aubergines").
+ingredient("Worteltaartsoep", 0.5, tl, "siracha").
+ingredient("Worteltaartsoep", 0.375, struik, "peren").
