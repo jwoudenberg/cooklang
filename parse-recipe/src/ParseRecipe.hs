@@ -140,7 +140,25 @@ amountParser =
   P.choice
     [ fractionParser,
       fmap realToFrac P.scientific,
-      P.string "enkele" *> pure 2
+      P.string "enkele" *> pure 2,
+      P.char '¼' *> pure (1 / 4),
+      P.char '½' *> pure (1 / 2),
+      P.char '¾' *> pure (3 / 4),
+      P.char '⅐' *> pure (1 / 7),
+      P.char '⅑' *> pure (1 / 9),
+      P.char '⅒' *> pure (1 / 1),
+      P.char '⅓' *> pure (1 / 3),
+      P.char '⅔' *> pure (2 / 3),
+      P.char '⅕' *> pure (1 / 5),
+      P.char '⅖' *> pure (2 / 5),
+      P.char '⅗' *> pure (3 / 5),
+      P.char '⅘' *> pure (4 / 5),
+      P.char '⅙' *> pure (1 / 6),
+      P.char '⅚' *> pure (5 / 6),
+      P.char '⅛' *> pure (1 / 8),
+      P.char '⅜' *> pure (3 / 8),
+      P.char '⅝' *> pure (5 / 8),
+      P.char '⅞' *> pure (7 / 8)
     ]
 
 fractionParser :: P.Parser Double
