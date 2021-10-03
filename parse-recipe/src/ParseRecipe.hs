@@ -139,7 +139,8 @@ amountParser :: P.Parser Double
 amountParser =
   P.choice
     [ fractionParser,
-      fmap realToFrac P.scientific
+      fmap realToFrac P.scientific,
+      P.string "enkele" *> pure 2
     ]
 
 fractionParser :: P.Parser Double
@@ -182,7 +183,8 @@ colloquialUnits =
   [ "snuf",
     "teen",
     "tak",
-    "bos"
+    "bos",
+    "druppel"
   ]
 
 colloquialUnitParser :: [P.Parser Unit]
