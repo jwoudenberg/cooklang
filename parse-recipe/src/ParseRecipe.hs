@@ -122,7 +122,7 @@ portionsParser =
 
 parseIngredient :: Text -> Ingredient
 parseIngredient ingredientText =
-  case P.parse (quantityParser <* P.space) ingredientText of
+  case P.parse (quantityParser <* P.skipSpace) ingredientText of
     P.Fail _ _ _ -> Ingredient {name = ingredientText, quantity = Nothing}
     P.Partial _ -> Ingredient {name = ingredientText, quantity = Nothing}
     P.Done name' quantity' -> Ingredient {name = name', quantity = Just quantity'}
@@ -153,22 +153,27 @@ fractionParser = do
 
 unitParser :: P.Parser Unit
 unitParser =
+  -- Units must be followed by a space, or we might match the first 'g' in the
+  -- name of an ingredient and then commit the parser to that path.
   P.choice
-    [ SiUnit <$> siUnitParser,
-      prefixedSiUnit Milli "milli",
-      prefixedSiUnit Milli "m",
-      prefixedSiUnit Centi "centi",
-      prefixedSiUnit Centi "c",
-      prefixedSiUnit Deci "deci",
-      prefixedSiUnit Deci "d",
-      prefixedSiUnit Kilo "kilo",
-      prefixedSiUnit Kilo "k",
-      optionallyPlural $ colloquial Eetlepel "eetlepel",
-      colloquial Eetlepel "el",
-      optionallyPlural $ colloquial Theelepel "theelepel",
-      colloquial Theelepel "tl",
-      optionallyDiminuitive $ colloquial Snuf "snuf"
-    ]
+    ( fmap
+        (<* P.space)
+        [ SiUnit <$> siUnitParser,
+          prefixedSiUnit Milli "milli",
+          prefixedSiUnit Milli "m",
+          prefixedSiUnit Centi "centi",
+          prefixedSiUnit Centi "c",
+          prefixedSiUnit Deci "deci",
+          prefixedSiUnit Deci "d",
+          prefixedSiUnit Kilo "kilo",
+          prefixedSiUnit Kilo "k",
+          optionallyPlural $ colloquial Eetlepel "eetlepel",
+          colloquial Eetlepel "el",
+          optionallyPlural $ colloquial Theelepel "theelepel",
+          colloquial Theelepel "tl",
+          optionallyDiminuitive $ colloquial Snuf "snuf"
+        ]
+    )
 
 prefixedSiUnit :: (SiUnit -> Unit) -> Text -> P.Parser Unit
 prefixedSiUnit ctor prefix =
