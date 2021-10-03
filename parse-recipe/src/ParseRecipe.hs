@@ -216,6 +216,7 @@ data DatalogFact = DatalogFact
 
 data DatalogConstant
   = String Text
+  | Symbol Text
   | Number Double
 
 recipeFacts :: Recipe Identity -> [DatalogFact]
@@ -240,7 +241,7 @@ ingredientFact recipe ingredient =
     Ingredient {name, quantity = Just Quantity {amount, unit = Nothing}} ->
       DatalogFact "ingredient" [String recipe, Number amount, String name]
     Ingredient {name, quantity = Just Quantity {amount, unit = Just unit'}} ->
-      DatalogFact "ingredient" [String recipe, Number amount, String (unitToText unit'), String name]
+      DatalogFact "ingredient" [String recipe, Number amount, Symbol (unitToText unit'), String name]
 
 unitToText :: Unit -> Text
 unitToText unit' =
@@ -266,6 +267,7 @@ printDatalogProgram handle facts =
       printFact fact =
         case fact of
           Number n -> hPutStr handle (show n)
+          Symbol string -> p string
           String string -> p "\"" *> p string *> p "\""
    in for_ facts $ \fact -> do
         p (relation fact)
