@@ -161,7 +161,9 @@ amountParser =
       P.char '⅛' *> pure (1 / 8),
       P.char '⅜' *> pure (3 / 8),
       P.char '⅝' *> pure (5 / 8),
-      P.char '⅞' *> pure (7 / 8)
+      P.char '⅞' *> pure (7 / 8),
+      amountParser *> P.string " tot " *> amountParser,
+      amountParser *> P.string "-" *> amountParser
     ]
 
 fractionParser :: P.Parser Double
