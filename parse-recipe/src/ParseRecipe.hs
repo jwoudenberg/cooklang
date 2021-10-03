@@ -3,6 +3,7 @@
 module ParseRecipe where
 
 import qualified Data.Attoparsec.Text as P
+import qualified Data.Char as Char
 import Data.Foldable (for_, traverse_)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
@@ -122,11 +123,15 @@ portionsParser =
     <* P.choice [P.asciiCI " personen", P.asciiCI " persoon"]
 
 parseIngredient :: Text -> Ingredient
-parseIngredient ingredientText =
-  case P.parse (quantityParser <* P.skipSpace) ingredientText of
-    P.Fail _ _ _ -> Ingredient {name = ingredientText, quantity = Nothing}
-    P.Partial _ -> Ingredient {name = ingredientText, quantity = Nothing}
-    P.Done name' quantity' -> Ingredient {name = name', quantity = Just quantity'}
+parseIngredient messyIngredientText =
+  let ingredientText =
+        case P.parseOnly cleanupParser messyIngredientText of
+          Left _ -> messyIngredientText
+          Right cleanedIngredientText -> strip cleanedIngredientText
+   in case P.parse (quantityParser <* P.skipSpace) ingredientText of
+        P.Fail _ _ _ -> Ingredient {name = ingredientText, quantity = Nothing}
+        P.Partial _ -> Ingredient {name = ingredientText, quantity = Nothing}
+        P.Done name' quantity' -> Ingredient {name = name', quantity = Just quantity'}
 
 quantityParser :: P.Parser Quantity
 quantityParser =
@@ -216,15 +221,24 @@ unitParser =
 
 colloquialUnits :: [[Text]]
 colloquialUnits =
-  [ ["blik", "blikje", "blikjes"],
-    ["snuf", "snufje"],
-    ["teen", "tenen", "teentje", "teentjes"],
-    ["tak", "takje", "takjes"],
-    ["bos", "bosje"],
-    ["plant", "plantje"],
+  [ ["bak", "bakje", "bakjes"],
+    ["beker", "bekers", "bekertje", "bekertjes"],
     ["blad", "blaadje", "blaadjes"],
+    ["blik", "blikje", "blikjes"],
+    ["bos", "bosje", "bosjes"],
+    ["doos", "doosje", "doosjes"],
     ["druppel", "druppels"],
-    ["mespunt", "mespuntje", "mespuntjes"]
+    ["fles", "flessen", "flesje", "flesjes"],
+    ["mespunt", "mespuntje", "mespuntjes"],
+    ["pak", "pakken", "pakje", "pakjes"],
+    ["plak", "plakken", "plakje", "plakjes"],
+    ["plant", "plantje", "plantjes"],
+    ["pot", "potten", "potje", "potjes"],
+    ["snuf", "snufje"],
+    ["struik", "struiken"],
+    ["tak", "takje", "takjes"],
+    ["teen", "tenen", "teentje", "teentjes"],
+    ["zak", "zakken", "zakje", "zakjes"]
   ]
 
 colloquialUnitParser :: [P.Parser Unit]
@@ -260,8 +274,8 @@ siUnitParser =
     P.asciiCI "g" *> pure Gram,
     P.asciiCI "liter" *> pure Liter,
     P.asciiCI "l" *> pure Liter,
-    P.asciiCI "meter" *> pure Liter,
-    P.asciiCI "m" *> pure Liter
+    P.asciiCI "meter" *> pure Meter,
+    P.asciiCI "m" *> pure Meter
   ]
 
 data DatalogFact = DatalogFact
@@ -330,3 +344,29 @@ printDatalogProgram handle facts =
         p "("
         traverse_ id (intersperse (p ", ") (printFact <$> constants fact))
         p ").\n"
+
+cleanupParser :: P.Parser Text
+cleanupParser = do
+  P.skipMany toSkip
+  word <- takeWord
+  if word == "" then P.takeText else fmap (word <>) cleanupParser
+
+takeWord :: P.Parser Text
+takeWord = fmap fst $
+  P.match $ do
+    _ <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
+    _ <- P.takeWhile Char.isAlpha
+    P.skipSpace
+
+toSkip :: P.Parser ()
+toSkip =
+  P.choice
+    [ P.char ',' *> P.takeText *> pure (),
+      P.char '(' *> P.skipWhile (/= ')') *> P.char ')' *> P.skipSpace,
+      P.asciiCI "grote" *> P.skipSpace,
+      P.asciiCI "middelgrote" *> P.skipSpace,
+      P.asciiCI "kleine" *> P.skipSpace,
+      P.asciiCI "rijpe" *> P.skipSpace,
+      P.asciiCI "flinke" *> P.skipSpace,
+      P.asciiCI "beetje" *> P.skipSpace
+    ]
