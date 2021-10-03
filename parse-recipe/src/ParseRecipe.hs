@@ -7,10 +7,11 @@ import Data.Foldable (for_, traverse_)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
 import Data.List (intersperse)
-import Data.Text (Text, strip)
+import Data.Text (Text, strip, unpack)
 import qualified Data.Text.IO
 import qualified System.Environment
-import System.IO (Handle, hPutStr, stdout)
+import qualified System.Exit
+import System.IO (Handle, hPutStr, stderr, stdout)
 import Text.Pandoc
 
 main :: IO ()
@@ -19,29 +20,37 @@ main = do
   case args of
     ["--help"] -> showHelp
     [path] -> run path
-    _ -> showHelp
+    _ -> do
+      showHelp
+      System.Exit.exitFailure
 
 showHelp :: IO ()
 showHelp = do
-  Data.Text.IO.putStrLn "parse-recipe RECIPE"
-  Data.Text.IO.putStrLn "Parses a markdown file containing a recipe and prints a datalog representation of its ingredients to stdout."
+  Data.Text.IO.hPutStrLn stderr "parse-recipe RECIPE"
+  Data.Text.IO.hPutStrLn stderr "Parses a markdown file containing a recipe and prints a datalog representation of its ingredients to stdout."
 
 run :: FilePath -> IO ()
 run recipeFile = do
   markdownText <- Data.Text.IO.readFile recipeFile
   (Pandoc _ blocks) <- runIOorExplode $ readMarkdown def markdownText
-  let emptyRecipe = Recipe (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing)) (Compose (pure Nothing))
+  let emptyRecipe =
+        Recipe
+          { title = Compose (pure (Left "Did not find recipe title.")),
+            portions = Compose (pure (Right Nothing)),
+            ingredients = (Compose (pure (Right []))),
+            instructions = Compose (pure (Right []))
+          }
   let recipePandoc = foldr parseBlock emptyRecipe blocks
   recipeMaybe <- runIOorExplode $ extract getCompose recipePandoc
   recipe <-
     case extract (fmap Identity) recipeMaybe of
-      Nothing -> fail "Recipe was missing section"
-      Just recipe' -> pure recipe'
+      Left err -> System.Exit.die (unpack err)
+      Right recipe' -> pure recipe'
   printDatalogProgram stdout (recipeFacts recipe)
 
 data Recipe m = Recipe
   { title :: m Text,
-    portions :: m Double,
+    portions :: m (Maybe Double),
     ingredients :: m [Ingredient],
     instructions :: m [Text]
   }
@@ -82,24 +91,24 @@ extract f recipe =
     <*> f (ingredients recipe)
     <*> f (instructions recipe)
 
-parseBlock :: Block -> Recipe (Compose PandocIO Maybe) -> Recipe (Compose PandocIO Maybe)
+parseBlock :: Block -> Recipe (Compose PandocIO (Either Text)) -> Recipe (Compose PandocIO (Either Text))
 parseBlock block recipe =
   case block of
     Header 1 _ inlines ->
-      recipe {title = Compose (fmap Just (toText [Plain inlines]))}
+      recipe {title = Compose (fmap Right (toText [Plain inlines]))}
     Para inlines ->
       recipe
         { portions = Compose $ do
             paragraphText <- toText [Plain inlines]
-            pure $ P.maybeResult (P.parse portionsParser paragraphText)
+            pure . Right $ P.maybeResult (P.parse portionsParser paragraphText)
         }
     BulletList items ->
       recipe
         { ingredients =
-            Compose $ fmap Just $ traverse (fmap parseIngredient . toText) items
+            Compose $ fmap Right $ traverse (fmap parseIngredient . toText) items
         }
     OrderedList _ items ->
-      recipe {instructions = Compose (fmap Just (traverse toText items))}
+      recipe {instructions = Compose (fmap Right (traverse toText items))}
     _ -> recipe
 
 toText :: [Block] -> PandocIO Text
@@ -207,12 +216,16 @@ data DatalogConstant
 recipeFacts :: Recipe Identity -> [DatalogFact]
 recipeFacts recipe =
   let recipeName = runIdentity (title recipe)
-   in DatalogFact
-        "portions"
-        [ String recipeName,
-          Number (runIdentity (portions recipe))
-        ] :
-      fmap (ingredientFact recipeName) (runIdentity (ingredients recipe))
+      ingredientFacts = fmap (ingredientFact recipeName) (runIdentity (ingredients recipe))
+   in case runIdentity (portions recipe) of
+        Nothing -> ingredientFacts
+        Just portions' ->
+          DatalogFact
+            "portions"
+            [ String recipeName,
+              Number portions'
+            ] :
+          ingredientFacts
 
 ingredientFact :: Text -> Ingredient -> DatalogFact
 ingredientFact recipe ingredient =
