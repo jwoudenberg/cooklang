@@ -81,6 +81,7 @@ data Unit
 data SiUnit
   = Gram
   | Liter
+  | Meter
   deriving (Show)
 
 extract :: Applicative g => (forall a. f a -> g (h a)) -> Recipe f -> g (Recipe h)
@@ -247,7 +248,9 @@ siUnitParser =
   [ P.asciiCI "gram" *> pure Gram,
     P.asciiCI "g" *> pure Gram,
     P.asciiCI "liter" *> pure Liter,
-    P.asciiCI "l" *> pure Liter
+    P.asciiCI "l" *> pure Liter,
+    P.asciiCI "meter" *> pure Liter,
+    P.asciiCI "m" *> pure Liter
   ]
 
 data DatalogFact = DatalogFact
@@ -301,6 +304,7 @@ siUnitToText siUnit =
   case siUnit of
     Gram -> "g"
     Liter -> "l"
+    Meter -> "m"
 
 printDatalogProgram :: Handle -> [DatalogFact] -> IO ()
 printDatalogProgram handle facts =
