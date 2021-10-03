@@ -238,6 +238,7 @@ colloquialUnits =
     ["struik", "struiken"],
     ["tak", "takje", "takjes"],
     ["teen", "tenen", "teentje", "teentjes"],
+    ["vel", "vellen", "velletje", "velletjes"],
     ["zak", "zakken", "zakje", "zakjes"]
   ]
 
@@ -352,19 +353,11 @@ cleanupParser = do
   if word == "" then P.takeText else fmap (word <>) cleanupParser
 
 takeWord :: P.Parser Text
-takeWord = do
-  preWord <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
-  word <- P.takeWhile Char.isAlpha
-  spaces <- P.takeWhile Char.isSpace
-  pure (preWord <> maybeReplaceWord word <> spaces)
-
-maybeReplaceWord :: Text -> Text
-maybeReplaceWord word =
-  case word of
-    "ui" -> "uien"
-    "ei" -> "eieren"
-    "tomaat" -> "tomaten"
-    _ -> word
+takeWord = fmap fst $
+  P.match $ do
+    _ <- P.takeWhile (\char -> not (Char.isAlpha char) && not (Char.isSpace char))
+    _ <- P.takeWhile Char.isAlpha
+    P.skipSpace
 
 toSkip :: P.Parser ()
 toSkip =

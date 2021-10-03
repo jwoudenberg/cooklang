@@ -9,3 +9,4 @@ Voor 4 personen
 - ½ theelepel siracha, gestoofd
 - 3/8 struik peren
 - 1 ei
+- 3.5 knoflooktenen
