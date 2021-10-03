@@ -75,7 +75,7 @@ data Unit
   | SiUnit SiUnit
   | Eetlepel
   | Theelepel
-  | Snuf
+  | Colloquial Text
   deriving (Show)
 
 data SiUnit
@@ -171,8 +171,22 @@ unitParser =
           colloquial Eetlepel "el",
           optionallyPlural $ colloquial Theelepel "theelepel",
           colloquial Theelepel "tl",
-          optionallyDiminuitive $ colloquial Snuf "snuf"
+          colloquialUnitParser
         ]
+    )
+
+colloquialUnits :: [Text]
+colloquialUnits =
+  [ "snuf",
+    "teen",
+    "tak",
+    "bos"
+  ]
+
+colloquialUnitParser :: P.Parser Unit
+colloquialUnitParser =
+  P.choice
+    ( fmap (\unit -> pure (Colloquial unit) <* P.asciiCI unit) colloquialUnits
     )
 
 prefixedSiUnit :: (SiUnit -> Unit) -> Text -> P.Parser Unit
@@ -253,7 +267,7 @@ unitToText unit' =
     SiUnit siUnit -> siUnitToText siUnit
     Eetlepel -> "el"
     Theelepel -> "tl"
-    Snuf -> "snuf"
+    Colloquial text -> text
 
 siUnitToText :: SiUnit -> Text
 siUnitToText siUnit =
