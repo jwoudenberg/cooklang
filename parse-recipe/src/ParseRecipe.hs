@@ -158,21 +158,23 @@ unitParser =
   P.choice
     ( fmap
         (<* P.space)
-        [ SiUnit <$> siUnitParser,
-          prefixedSiUnit Milli "milli",
-          prefixedSiUnit Milli "m",
-          prefixedSiUnit Centi "centi",
-          prefixedSiUnit Centi "c",
-          prefixedSiUnit Deci "deci",
-          prefixedSiUnit Deci "d",
-          prefixedSiUnit Kilo "kilo",
-          prefixedSiUnit Kilo "k",
-          optionallyPlural $ colloquial Eetlepel "eetlepel",
-          colloquial Eetlepel "el",
-          optionallyPlural $ colloquial Theelepel "theelepel",
-          colloquial Theelepel "tl",
-          colloquialUnitParser
-        ]
+        ( mconcat
+            [ fmap SiUnit <$> siUnitParser,
+              prefixedSiUnit Milli "milli",
+              prefixedSiUnit Milli "m",
+              prefixedSiUnit Centi "centi",
+              prefixedSiUnit Centi "c",
+              prefixedSiUnit Deci "deci",
+              prefixedSiUnit Deci "d",
+              prefixedSiUnit Kilo "kilo",
+              prefixedSiUnit Kilo "k",
+              optionallyPlural $ colloquial Eetlepel "eetlepel",
+              [colloquial Eetlepel "el"],
+              optionallyPlural $ colloquial Theelepel "theelepel",
+              [colloquial Theelepel "tl"],
+              colloquialUnitParser
+            ]
+        )
     )
 
 colloquialUnits :: [Text]
@@ -183,45 +185,43 @@ colloquialUnits =
     "bos"
   ]
 
-colloquialUnitParser :: P.Parser Unit
+colloquialUnitParser :: [P.Parser Unit]
 colloquialUnitParser =
-  P.choice
-    ( fmap (\unit -> pure (Colloquial unit) <* P.asciiCI unit) colloquialUnits
-    )
+  concatMap
+    (\unit -> optionallyDiminuitive (pure (Colloquial unit) <* P.asciiCI unit))
+    colloquialUnits
 
-prefixedSiUnit :: (SiUnit -> Unit) -> Text -> P.Parser Unit
+prefixedSiUnit :: (SiUnit -> Unit) -> Text -> [P.Parser Unit]
 prefixedSiUnit ctor prefix =
-  ctor <$> (P.asciiCI prefix *> siUnitParser)
+  fmap (fmap ctor . (P.asciiCI prefix *>)) siUnitParser
 
 colloquial :: Unit -> Text -> P.Parser Unit
 colloquial unit base =
   pure unit <* P.asciiCI base
 
-optionallyPlural :: P.Parser a -> P.Parser a
+optionallyPlural :: P.Parser a -> [P.Parser a]
 optionallyPlural parser =
-  P.choice
-    [ parser <* P.asciiCI "s",
-      parser
-    ]
+  [ parser <* P.asciiCI "s",
+    parser
+  ]
 
-optionallyDiminuitive :: P.Parser a -> P.Parser a
+optionallyDiminuitive :: P.Parser a -> [P.Parser a]
 optionallyDiminuitive parser =
-  P.choice
-    [ parser <* P.asciiCI "jes",
-      parser <* P.asciiCI "je",
-      parser <* P.asciiCI "tjes",
-      parser <* P.asciiCI "tje",
-      parser
-    ]
+  [ parser <* P.asciiCI "jes",
+    parser <* P.asciiCI "je",
+    parser <* P.asciiCI "tjes",
+    parser <* P.asciiCI "tje",
+    parser <* P.asciiCI "s",
+    parser
+  ]
 
-siUnitParser :: P.Parser SiUnit
+siUnitParser :: [P.Parser SiUnit]
 siUnitParser =
-  P.choice
-    [ P.asciiCI "gram" *> pure Gram,
-      P.asciiCI "g" *> pure Gram,
-      P.asciiCI "liter" *> pure Liter,
-      P.asciiCI "l" *> pure Liter
-    ]
+  [ P.asciiCI "gram" *> pure Gram,
+    P.asciiCI "g" *> pure Gram,
+    P.asciiCI "liter" *> pure Liter,
+    P.asciiCI "l" *> pure Liter
+  ]
 
 data DatalogFact = DatalogFact
   { relation :: Text,
