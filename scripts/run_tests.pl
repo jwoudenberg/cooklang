@@ -2,7 +2,6 @@
 
 :- initialization(main).
 :- use_module(example/recipes).
-:- use_module(lib/recipe_parsing).
 :- use_module(lib/groceries).
 
 main :-
