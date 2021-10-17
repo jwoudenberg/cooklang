@@ -1,4 +1,0 @@
-language: nix
-
-script:
-  - nix-shell --run "./scripts/ci.sh"
