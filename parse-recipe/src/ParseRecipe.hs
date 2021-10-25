@@ -102,7 +102,9 @@ parseBlock block recipe =
       recipe
         { portions = Compose $ do
             paragraphText <- toText [Plain inlines]
-            pure . Right $ P.maybeResult (P.parse portionsParser paragraphText)
+            case P.maybeResult (P.parse portionsParser paragraphText) of
+              Just portions' -> pure . Right $ Just portions'
+              Nothing -> getCompose (portions recipe)
         }
     BulletList items ->
       recipe
