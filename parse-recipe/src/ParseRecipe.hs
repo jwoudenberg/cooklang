@@ -295,15 +295,13 @@ recipeFacts :: Recipe Identity -> [DatalogFact]
 recipeFacts recipe =
   let recipeName = runIdentity (title recipe)
       ingredientFacts = fmap (ingredientFact recipeName) (runIdentity (ingredients recipe))
-   in case runIdentity (portions recipe) of
-        Nothing -> ingredientFacts
-        Just portions' ->
-          DatalogFact
-            "portions"
-            [ String recipeName,
-              Number portions'
-            ] :
-          ingredientFacts
+      portions' = maybe 0 id $ runIdentity (portions recipe)
+   in DatalogFact
+        "portions"
+        [ String recipeName,
+          Number portions'
+        ] :
+      ingredientFacts
 
 ingredientFact :: Text -> Ingredient -> DatalogFact
 ingredientFact recipe ingredient =
