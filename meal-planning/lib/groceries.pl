@@ -1,4 +1,4 @@
-:- module(groceries, [mealplan/1, with/2, without/2, search_recipe/2, print_grocery_list/0]).
+:- module(groceries, [ingredients/2, mealplan/1, with/2, without/2, search_recipe/2, print_grocery_list/0]).
 
 % Example usage:
 %
@@ -42,6 +42,15 @@ recency_score(Now, Recipe, Score) :-
 planned_full_name(Date, Full) :-
   planned(Date, Short, _),
   find_recipe(Short, Full).
+
+contains(Name, ingredient_line(Ingredient)) :-
+  ingredient(Name, Ingredient).
+
+contains(Name, ingredient_line(Quantity, Ingredient)) :-
+  ingredient(Name, Quantity, Ingredient).
+
+contains(Name, ingredient_line(Quantity, Unit, Ingredient)) :-
+  ingredient(Name, Quantity, Unit, Ingredient).
 
 % Score each date based on how far away it is from now. The current time gets a
 % score of 1. That score is halved for each week into the future or past.
@@ -128,11 +137,11 @@ print_grocery_list :-
   maplist(print_grocery(Stream), Groceries),
   close(Stream).
 
-print_grocery(Stream, ingredient(Name)) :-
+print_grocery(Stream, ingredient_line(Name)) :-
   format(Stream, "~w~n", [Name]).
-print_grocery(Stream, ingredient(Quantity, Name)) :-
+print_grocery(Stream, ingredient_line(Quantity, Name)) :-
   format(Stream, "~w, ~w~n", [Name, Quantity]).
-print_grocery(Stream, ingredient(Quantity, Unit, Name)) :-
+print_grocery(Stream, ingredient_line(Quantity, Unit, Name)) :-
   format(Stream, "~w, ~w ~w~n", [Name, Quantity, Unit]).
 
 grocery_list(FromDate, Groceries) :-
@@ -163,19 +172,20 @@ ingredients(Name, Ingredients) :-
 :- begin_tests(ingredients).
 
 test(bolognese) :-
-  ingredients("Spaghetti Bolognese", [
-    ingredient(500, g, "minced beef"),
-    ingredient(100, g, "ham"),
-    ingredient(1, "onion"),
-    ingredient(1, toe, "garlic"),
-    ingredient(2, cans, "peeled tomatoes"),
-    ingredient("small can of tomato puree"),
-    ingredient(1, dl, "red whine"),
-    ingredient(1, "bay leaf"),
-    ingredient("oregano"),
-    ingredient("salt"),
-    ingredient("grated cheese"),
-    ingredient(500, g, "spaghetti")
+  ingredients("Spaghetti Bolognese", Unsorted),
+  sort(Unsorted, [
+    ingredient_line("grated cheese"),
+    ingredient_line("oregano"),
+    ingredient_line("salt"),
+    ingredient_line("small can of tomato puree"),
+    ingredient_line(1, "bay leaf"),
+    ingredient_line(1, "onion"),
+    ingredient_line(1, dl, "red whine"),
+    ingredient_line(1, toe, "garlic"),
+    ingredient_line(2, cans, "peeled tomatoes"),
+    ingredient_line(100, g, "ham"),
+    ingredient_line(500, g, "minced beef"),
+    ingredient_line(500, g, "spaghetti")
   ]).
 
 :- end_tests(ingredients).
@@ -192,32 +202,32 @@ test("empty list") :-
 
 test("different ingredients") :-
   dedupe(
-    [ingredient(5, g, sausage), ingredient(100, g, sugar)],
-    [ingredient(5, g, sausage), ingredient(100, g, sugar)]
+    [ingredient_line(5, g, sausage), ingredient_line(100, g, sugar)],
+    [ingredient_line(5, g, sausage), ingredient_line(100, g, sugar)]
   ).
 
 test("same units") :-
   dedupe(
-    [ingredient(5, g, sugar), ingredient(100, g, sugar)],
-    [ingredient(105, g, sugar)]
+    [ingredient_line(5, g, sugar), ingredient_line(100, g, sugar)],
+    [ingredient_line(105, g, sugar)]
   ).
 
 test("convertable units") :-
   dedupe(
-    [ingredient(5, kg, sugar), ingredient(100, g, sugar)],
-    [ingredient(5.1, kg, sugar)]
+    [ingredient_line(5, kg, sugar), ingredient_line(100, g, sugar)],
+    [ingredient_line(5.1, kg, sugar)]
   ).
 
 test("unconvertable units") :-
   dedupe(
-    [ingredient(5, kg, sugar), ingredient(1, blikje, sugar)],
-    [ingredient("5 kg + 1 blikje", sugar)]
+    [ingredient_line(5, kg, sugar), ingredient_line(1, blikje, sugar)],
+    [ingredient_line("5 kg + 1 blikje", sugar)]
   ).
 
 test("unit and non-unit") :-
   dedupe(
-    [ingredient(5, kg, sugar), ingredient(1, sugar)],
-    [ingredient("5 kg + 1", sugar)]
+    [ingredient_line(5, kg, sugar), ingredient_line(1, sugar)],
+    [ingredient_line("5 kg + 1", sugar)]
   ).
 
 :- end_tests(dedupe).
@@ -238,88 +248,88 @@ with_ingredient(P, I) :-
   get_ingredient(I, Ingredient),
   call(P, Ingredient).
 
-get_ingredient(ingredient(_, _, Ingredient), Ingredient).
-get_ingredient(ingredient(_, Ingredient   ), Ingredient).
-get_ingredient(ingredient(Ingredient      ), Ingredient).
+get_ingredient(ingredient_line(_, _, Ingredient), Ingredient).
+get_ingredient(ingredient_line(_, Ingredient   ), Ingredient).
+get_ingredient(ingredient_line(Ingredient      ), Ingredient).
 
 add_ingredients(I1, I2, IR) :-
   same_ingredient(I1, I2) -> once(add_ingredients_helper(I1, I2, IR));
   add_ingredients_fallback(I1, I2, IR).
 
-add_ingredients_helper(ingredient(I      ), ingredient(_      ), ingredient(I      )).
-add_ingredients_helper(ingredient(X, I   ), ingredient(Y, _   ), ingredient(S, I   )) :-
+add_ingredients_helper(ingredient_line(I      ), ingredient_line(_      ), ingredient_line(I      )).
+add_ingredients_helper(ingredient_line(X, I   ), ingredient_line(Y, _   ), ingredient_line(S, I   )) :-
   number(X),
   number(Y),
   S is X+Y.
-add_ingredients_helper(ingredient(X, I   ), ingredient(Y, _   ), ingredient(S, I   )) :-
+add_ingredients_helper(ingredient_line(X, I   ), ingredient_line(Y, _   ), ingredient_line(S, I   )) :-
   append(X,Y,S).
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, U, _), ingredient(S, U, I)) :- S is X+Y.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, U, I)) :-
+add_ingredients_helper(ingredient_line(X, U, I), ingredient_line(Y, U, _), ingredient_line(S, U, I)) :- S is X+Y.
+add_ingredients_helper(ingredient_line(X, U, I), ingredient_line(Y, V, _), ingredient_line(S, U, I)) :-
   convert(quantity(Y, V), quantity(Y2, U)),
   S is X+Y2.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, V, I)) :-
+add_ingredients_helper(ingredient_line(X, U, I), ingredient_line(Y, V, _), ingredient_line(S, V, I)) :-
   convert(quantity(X, U), quantity(X2, V)),
   S is X2+Y.
-add_ingredients_helper(ingredient(X, U, I), ingredient(Y, V, _), ingredient(S, W, I)) :-
+add_ingredients_helper(ingredient_line(X, U, I), ingredient_line(Y, V, _), ingredient_line(S, W, I)) :-
   convert(quantity(X, U), quantity(X2, W)),
   convert(quantity(Y, V), quantity(Y2, W)),
   S is X2+Y2.
 add_ingredients_helper(I1, I2, IR) :-
   add_ingredients_fallback(I1, I2, IR).
 
-add_ingredients_fallback(I1, I2, ingredient(QR, I)) :-
+add_ingredients_fallback(I1, I2, ingredient_line(QR, I)) :-
   get_ingredient(I1, I),
   quantity_unit_string(I1, Q1),
   quantity_unit_string(I2, Q2),
   atomics_to_string([Q1, Q2], " + ", QR).
 
-quantity_unit_string(ingredient(_), "").
-quantity_unit_string(ingredient(Unit, _), Unit).
-quantity_unit_string(ingredient(Quantity, Unit, _), String) :-
+quantity_unit_string(ingredient_line(_), "").
+quantity_unit_string(ingredient_line(Unit, _), Unit).
+quantity_unit_string(ingredient_line(Quantity, Unit, _), String) :-
   atomics_to_string([Quantity, Unit], " ", String).
 
 :- begin_tests(add_ingredients).
 
 test("without quantities") :-
   add_ingredients(
-    ingredient("sugar"),
-    ingredient("sugar"),
-    ingredient("sugar")
+    ingredient_line("sugar"),
+    ingredient_line("sugar"),
+    ingredient_line("sugar")
   ).
 
 test("without units") :-
   add_ingredients(
-    ingredient(2, "cars"),
-    ingredient(3, "cars"),
-    ingredient(5, "cars")
+    ingredient_line(2, "cars"),
+    ingredient_line(3, "cars"),
+    ingredient_line(5, "cars")
   ).
 
 test("with units 1") :-
   add_ingredients(
-    ingredient(100, g, "sugar"),
-    ingredient(5, kg, "sugar"),
-    ingredient(5.1, kg, "sugar")
+    ingredient_line(100, g, "sugar"),
+    ingredient_line(5, kg, "sugar"),
+    ingredient_line(5.1, kg, "sugar")
   ).
 
 test("with units 2") :-
   add_ingredients(
-    ingredient(5, kg, "sugar"),
-    ingredient(100, g, "sugar"),
-    ingredient(5.1, kg, "sugar")
+    ingredient_line(5, kg, "sugar"),
+    ingredient_line(100, g, "sugar"),
+    ingredient_line(5.1, kg, "sugar")
   ).
 
 test("with 2 non-standard units") :-
   add_ingredients(
-    ingredient(1, el, "sugar"),
-    ingredient(2, tl, "sugar"),
-    ingredient(25, ml, "sugar")
+    ingredient_line(1, el, "sugar"),
+    ingredient_line(2, tl, "sugar"),
+    ingredient_line(25, ml, "sugar")
   ).
 
-test("with 2 differently spelled ingredient") :-
+test("with 2 differently spelled ingredient_line") :-
   add_ingredients(
-    ingredient(1, "banaan"),
-    ingredient(2, "bananen"),
-    ingredient(3, "banaan")
+    ingredient_line(1, "banaan"),
+    ingredient_line(2, "bananen"),
+    ingredient_line(3, "banaan")
   ).
 
 :- end_tests(add_ingredients).
@@ -337,9 +347,9 @@ dutch_root(Ingredient, Root) :-
   re_replace("([aeiou]){2}"/g, "\\1", Ingredient, Root) -> true;
   Ingredient = Root.
 
-multiply_quantity(_,      ingredient(I      ), ingredient(I      )).
-multiply_quantity(Factor, ingredient(Q, I   ), ingredient(M, I   )) :- M is Q*Factor.
-multiply_quantity(Factor, ingredient(Q, U, I), ingredient(M, U, I)) :- M is Q*Factor.
+multiply_quantity(_,      ingredient_line(I      ), ingredient_line(I      )).
+multiply_quantity(Factor, ingredient_line(Q, I   ), ingredient_line(M, I   )) :- M is Q*Factor.
+multiply_quantity(Factor, ingredient_line(Q, U, I), ingredient_line(M, U, I)) :- M is Q*Factor.
 
 conversion(quantity(X, g), quantity(Y, kg)) :- Y is X/1000.
 conversion(quantity(X, el), quantity(Y, ml)) :- Y is X*15.
