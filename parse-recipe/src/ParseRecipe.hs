@@ -8,7 +8,8 @@ import Data.Foldable (for_, traverse_)
 import Data.Functor.Compose (Compose (..))
 import Data.Functor.Identity (Identity (..))
 import Data.List (intersperse)
-import Data.Text (Text, strip, toLower, unpack)
+import qualified Data.Map.Strict as Map
+import Data.Text (Text, pack, strip, toLower, unpack)
 import qualified Data.Text.IO
 import qualified System.Environment
 import qualified System.Exit
@@ -33,10 +34,20 @@ showHelp = do
 run :: FilePath -> IO ()
 run recipeFile = do
   markdownText <- Data.Text.IO.readFile recipeFile
-  (Pandoc _ blocks) <- runIOorExplode $ readMarkdown def markdownText
+  (Pandoc (Meta meta) blocks) <-
+    runIOorExplode $
+      readMarkdown
+        def {readerExtensions = extensionsFromList [Ext_yaml_metadata_block]}
+        markdownText
+  let title =
+        case Map.lookup "title" meta of
+          Nothing -> pure (Left "Did not find recipe title.")
+          Just (MetaString str) -> pure (Right str)
+          Just (MetaInlines inlines) -> Right <$> toText [Plain inlines]
+          Just notATitle -> pure (Left ("Invalid title: " <> pack (show notATitle)))
   let emptyRecipe =
         Recipe
-          { title = Compose (pure (Left "Did not find recipe title.")),
+          { title = Compose title,
             portions = Compose (pure (Right Nothing)),
             ingredients = (Compose (pure (Right []))),
             instructions = Compose (pure (Right []))

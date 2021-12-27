@@ -1,4 +1,7 @@
-# Worteltaartsoep
+---
+title: Worteltaartsoep
+tags: soep, vega
+---
 
 Voor 4 personen
 
