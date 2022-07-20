@@ -1,4 +1,5 @@
 from collections import namedtuple
+from functools import reduce
 
 Recipe = namedtuple("Recipe", ["instructions", "ingredients"])
 
@@ -7,15 +8,61 @@ def parseRecipe(text):
     """
     Parse a cooklang recipe text
 
-    >>> parseRecipe(b'Add the @onions to the pan')
-    b'onions'
+    >>> parseRecipe(b'Add the @onions to the @garlic')
+    Recipe(instructions='Add the onions to the garlic', ingredients=[b'onions', b'garlic'])
     """
 
-    recipe = Recipe(instructions="", ingredients=[])
+    # Normally when taking a slice out of a bytestring python copies the slice
+    # out of the original bytestring into a new one. A bytestring wrapped in a
+    # memoryview does not create such copies: slices will reference bits of the
+    # original bytestring. Because we will create a lot of slices during parsing
+    # this seems a good optimization.
     text = memoryview(text)
-    (_, text) = takeWhile(text, lambda char: char != ord("@"))
-    (result, text) = parseIngredient(memoryview(text))
-    return result.tobytes()
+    ingredients = []
+    instructionBuilder = Builder()
+
+    while True:
+        (instruction, text) = takeWhile(text, lambda char: char != ord("@"))
+        if text == b"":
+            break
+        instructionBuilder.append(instruction)
+        (ingredient, text) = parseIngredient(memoryview(text))
+        ingredients.append(ingredient.tobytes())
+        instructionBuilder.append(ingredient)
+
+    instructions = instructionBuilder.tobytes().decode("utf8")
+    recipe = Recipe(instructions=instructions, ingredients=ingredients)
+    return recipe
+
+
+class Builder:
+    """
+    Helper for constructing a bytestring from a list of memoryview slices.
+    This approach directly copies each slice into the result bytestring.
+
+    >>> str = memoryview(b"Hello there, check out our world beating prices!")
+    >>> builder = Builder()
+    >>> builder.append(str[0:6])
+    >>> builder.append(str[27:32])
+    >>> builder.tobytes().decode('utf8')
+    'Hello world'
+    """
+
+    def __init__(self):
+        self.chunks = []
+        self.size = 0
+
+    def append(self, chunk):
+        self.chunks.append(chunk)
+        self.size += chunk.nbytes
+
+    def tobytes(self):
+        result = bytearray(self.size)
+        index = 0
+        for chunk in self.chunks:
+            result[index : index + chunk.nbytes] = chunk
+            index += chunk.nbytes
+        return result
 
 
 def parseIngredient(text):
