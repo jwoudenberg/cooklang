@@ -96,20 +96,67 @@ def parseIngredient(text):
 
     >>> parseIngredient(b'@garlic and @chopped onions{}')
     (Ingredient(name='garlic', amount=None), b' and @chopped onions{}')
+
+    A missing closing } is handled gracefully
+
+    >>> parseIngredient(b'@chopped onions{')
+    (Ingredient(name='chopped', amount=None), b' onions{')
+
+    Ingredient amounts can be specified between curly braces
+
+    >>> parseIngredient(b'@onions{2}')
+    (Ingredient(name='onions', amount=2.0), b'')
     """
 
-    (atSign, text) = take(text, 1)
-    if atSign != b"@":
-        raise ValueError("Expected text to start with a '@', but it did not")
-
-    (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
-    if remaining[0:2] == b"{}":
-        remaining = remaining[2:]
-    else:
+    text = exactly(text, b"@")
+    amount = None
+    try:
+        (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
+        remaining = exactly(remaining, b"{")
+        try:
+            (amount, remaining) = number(remaining)
+        except:
+            pass
+        remaining = exactly(remaining, b"}")
+    except ParseException:
         (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
 
     name = intern(bytes(ingredient).decode("utf8"))
-    return (Ingredient(name=name, amount=None), remaining)
+    return (Ingredient(name=name, amount=amount), remaining)
+
+
+# Parser helper functions unrelated to recipes.
+
+
+class ParseException(Exception):
+    pass
+
+
+def number(text):
+    (numberString, text) = takeWhile(text, lambda char: char in b"0123456789.")
+    if numberString != "":
+        return (float(numberString), text)
+    else:
+        raise ParseException(f"Expected a number but found {text}")
+
+
+def exactly(text, expected):
+    """
+    Parse an exact set of characters, or raise an error.
+
+    >>> exactly(b"hi there", b"hi")
+    b' there'
+
+    >>> exactly(b"hi there", b"ho") is None
+    Traceback (most recent call last):
+    ...
+    ParseException: Expected b'ho' but got b'ho'
+    """
+    expectedSize = len(expected)
+    if text[0:expectedSize] == expected:
+        return text[expectedSize:]
+    else:
+        raise ParseException(f"Expected {expected} but got {expected[0:expectedSize]}")
 
 
 def take(text, n):
