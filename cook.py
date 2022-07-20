@@ -1,7 +1,10 @@
 from collections import namedtuple
 from functools import reduce
+from sys import intern
 
 Recipe = namedtuple("Recipe", ["instructions", "ingredients"])
+
+Ingredient = namedtuple("Ingredient", ["name", "amount"])
 
 
 def parseRecipe(text):
@@ -9,7 +12,10 @@ def parseRecipe(text):
     Parse a cooklang recipe text
 
     >>> parseRecipe(b'Add the @chopped onions{} to the @garlic')
-    Recipe(instructions='Add the chopped onions to the garlic', ingredients=[b'chopped onions', b'garlic'])
+    Recipe(instructions='Add the chopped onions to the garlic', ingredients=[\
+Ingredient(name='chopped onions', amount=None), \
+Ingredient(name='garlic', amount=None)\
+])
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -27,8 +33,8 @@ def parseRecipe(text):
             break
         instructionBuilder.append(instruction)
         (ingredient, text) = parseIngredient(memoryview(text))
-        ingredients.append(ingredient.tobytes())
-        instructionBuilder.append(ingredient)
+        ingredients.append(ingredient)
+        instructionBuilder.append(bytes(ingredient.name, encoding="utf8"))
 
     instructions = instructionBuilder.tobytes().decode("utf8")
     recipe = Recipe(instructions=instructions, ingredients=ingredients)
@@ -54,14 +60,14 @@ class Builder:
 
     def append(self, chunk):
         self.chunks.append(chunk)
-        self.size += chunk.nbytes
+        self.size += len(chunk)
 
     def tobytes(self):
         result = bytearray(self.size)
         index = 0
         for chunk in self.chunks:
-            result[index : index + chunk.nbytes] = chunk
-            index += chunk.nbytes
+            result[index : index + len(chunk)] = chunk
+            index += len(chunk)
         return result
 
 
@@ -72,24 +78,24 @@ def parseIngredient(text):
     Ingredients are whitespace-separated words starting with @
 
     >>> parseIngredient(b'@onions to the pan')
-    (b'onions', b' to the pan')
+    (Ingredient(name='onions', amount=None), b' to the pan')
 
     >>> parseIngredient(b'@onions')
-    (b'onions', b'')
+    (Ingredient(name='onions', amount=None), b'')
 
     >>> parseIngredient(b'@onions\nare delicious')
-    (b'onions', b'\nare delicious')
+    (Ingredient(name='onions', amount=None), b'\nare delicious')
 
     Alternatively multi-word ingredients are written between @ and {}
 
     >>> parseIngredient(b'@chopped onions{}')
-    (b'chopped onions', b'')
+    (Ingredient(name='chopped onions', amount=None), b'')
 
     >>> parseIngredient(b'@chopped onions{} to the pan')
-    (b'chopped onions', b' to the pan')
+    (Ingredient(name='chopped onions', amount=None), b' to the pan')
 
     >>> parseIngredient(b'@garlic and @chopped onions{}')
-    (b'garlic', b' and @chopped onions{}')
+    (Ingredient(name='garlic', amount=None), b' and @chopped onions{}')
     """
 
     (atSign, text) = take(text, 1)
@@ -102,7 +108,8 @@ def parseIngredient(text):
     else:
         (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
 
-    return (ingredient, remaining)
+    name = intern(bytes(ingredient).decode("utf8"))
+    return (Ingredient(name=name, amount=None), remaining)
 
 
 def take(text, n):
