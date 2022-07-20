@@ -8,8 +8,8 @@ def parseRecipe(text):
     """
     Parse a cooklang recipe text
 
-    >>> parseRecipe(b'Add the @onions to the @garlic')
-    Recipe(instructions='Add the onions to the garlic', ingredients=[b'onions', b'garlic'])
+    >>> parseRecipe(b'Add the @chopped onions{} to the @garlic')
+    Recipe(instructions='Add the chopped onions to the garlic', ingredients=[b'chopped onions', b'garlic'])
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -69,6 +69,8 @@ def parseIngredient(text):
     r"""
     Parse a cooklang ingredient"
 
+    Ingredients are whitespace-separated words starting with @
+
     >>> parseIngredient(b'@onions to the pan')
     (b'onions', b' to the pan')
 
@@ -77,14 +79,30 @@ def parseIngredient(text):
 
     >>> parseIngredient(b'@onions\nare delicious')
     (b'onions', b'\nare delicious')
+
+    Alternatively multi-word ingredients are written between @ and {}
+
+    >>> parseIngredient(b'@chopped onions{}')
+    (b'chopped onions', b'')
+
+    >>> parseIngredient(b'@chopped onions{} to the pan')
+    (b'chopped onions', b' to the pan')
+
+    >>> parseIngredient(b'@garlic and @chopped onions{}')
+    (b'garlic', b' and @chopped onions{}')
     """
 
     (atSign, text) = take(text, 1)
     if atSign != b"@":
         raise ValueError("Expected text to start with a '@', but it did not")
 
-    (ingredient, text) = takeWhile(text, lambda char: char not in b" \n")
-    return (ingredient, text)
+    (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
+    if remaining[0:2] == b"{}":
+        remaining = remaining[2:]
+    else:
+        (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
+
+    return (ingredient, remaining)
 
 
 def take(text, n):
