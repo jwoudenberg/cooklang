@@ -97,32 +97,55 @@ def parseIngredient(text):
     >>> parseIngredient(b'@garlic and @chopped onions{}')
     (Ingredient(name='garlic', amount=None), b' and @chopped onions{}')
 
-    A missing closing } is handled gracefully
-
-    >>> parseIngredient(b'@chopped onions{')
-    (Ingredient(name='chopped', amount=None), b' onions{')
-
     Ingredient amounts can be specified between curly braces
 
     >>> parseIngredient(b'@onions{2}')
     (Ingredient(name='onions', amount=2.0), b'')
+
+    A missing closing } results in an error
+
+    >>> parseIngredient(b'@chopped onions{')
+    Traceback (most recent call last):
+    ...
+    ParseException: Expected b'}' but got b''
     """
 
     text = exactly(text, b"@")
     amount = None
-    try:
-        (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
-        remaining = exactly(remaining, b"{")
-        try:
-            (amount, remaining) = number(remaining)
-        except ParseException:
-            pass
-        remaining = exactly(remaining, b"}")
-    except ParseException:
+    (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
+    if len(remaining) > 0 and remaining[0] == ord("{"):
+        (amount, remaining) = parseAmount(remaining)
+    else:
         (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
 
     name = intern(bytes(ingredient).decode("utf8"))
     return (Ingredient(name=name, amount=amount), remaining)
+
+
+def parseAmount(text):
+    """
+    Parse an ingredient amount between curly braces.
+
+    >>> parseAmount(b'{} hi')
+    (None, b' hi')
+
+    >>> parseAmount(b'{2.5}')
+    (2.5, b'')
+
+    >>> parseAmount(b'{hi}')
+    Traceback (most recent call last):
+    ...
+    ParseException: Expected a number but got b'hi'
+    """
+
+    text = exactly(text, b"{")
+    (numberString, text) = takeWhile(text, lambda char: char not in b"}\n")
+    amount = None
+    if numberString != b"":
+        amount = number(numberString)
+    text = exactly(text, b"}")
+
+    return (amount, text)
 
 
 # Parser helper functions unrelated to recipes.
@@ -133,11 +156,25 @@ class ParseException(Exception):
 
 
 def number(text):
-    (numberString, text) = takeWhile(text, lambda char: char in b"0123456789.")
-    if numberString != b"":
-        return (float(numberString), text)
-    else:
-        raise ParseException(f"Expected a number but found {text}")
+    """
+    Parse a number
+
+    >>> number("2")
+    2.0
+
+    >>> number("2.5")
+    2.5
+
+    >>> number(b"hi")
+    Traceback (most recent call last):
+    ...
+    ParseException: Expected a number but got b'hi'
+    """
+
+    try:
+        return float(text)
+    except ValueError:
+        raise ParseException(f"Expected a number but got {text}")
 
 
 def exactly(text, expected):
@@ -150,13 +187,14 @@ def exactly(text, expected):
     >>> exactly(b"hi there", b"ho") is None
     Traceback (most recent call last):
     ...
-    ParseException: Expected b'ho' but got b'ho'
+    ParseException: Expected b'ho' but got b'hi'
     """
+
     expectedSize = len(expected)
     if text[0:expectedSize] == expected:
         return text[expectedSize:]
     else:
-        raise ParseException(f"Expected {expected} but got {expected[0:expectedSize]}")
+        raise ParseException(f"Expected {expected} but got {text[0:expectedSize]}")
 
 
 def take(text, n):
@@ -166,6 +204,7 @@ def take(text, n):
     >>> take('what a day', 4)
     ('what', ' a day')
     """
+
     return (text[0:n], text[n:])
 
 
