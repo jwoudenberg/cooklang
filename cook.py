@@ -115,7 +115,7 @@ def parseIngredient(text):
         remaining = exactly(remaining, b"{")
         try:
             (amount, remaining) = number(remaining)
-        except:
+        except ParseException:
             pass
         remaining = exactly(remaining, b"}")
     except ParseException:
@@ -134,7 +134,7 @@ class ParseException(Exception):
 
 def number(text):
     (numberString, text) = takeWhile(text, lambda char: char in b"0123456789.")
-    if numberString != "":
+    if numberString != b"":
         return (float(numberString), text)
     else:
         raise ParseException(f"Expected a number but found {text}")
