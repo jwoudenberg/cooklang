@@ -1,22 +1,17 @@
 from collections import namedtuple
 from sys import intern
 
-Recipe = namedtuple("Recipe", ["instructions", "ingredients"])
-
-Ingredient = namedtuple("Ingredient", ["name", "amount"])
-
-Amount = namedtuple("Amount", ["quantity", "unit"])
-
 
 def parseRecipe(text):
     """
     Parse a cooklang recipe text
 
     >>> parseRecipe(b'Add the @chopped onions{} to the @garlic')
-    Recipe(instructions='Add the chopped onions to the garlic', ingredients=[\
-Ingredient(name='chopped onions', amount=None), \
-Ingredient(name='garlic', amount=None)\
-])
+    {'instructions': 'Add the chopped onions to the garlic', \
+'ingredients': [\
+{'ingredient': 'chopped onions'}, \
+{'ingredient': 'garlic'}\
+]}
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -35,10 +30,10 @@ Ingredient(name='garlic', amount=None)\
         instructionBuilder.append(instruction)
         (ingredient, text) = parseIngredient(memoryview(text))
         ingredients.append(ingredient)
-        instructionBuilder.append(bytes(ingredient.name, encoding="utf8"))
+        instructionBuilder.append(bytes(ingredient["ingredient"], encoding="utf8"))
 
     instructions = instructionBuilder.tobytes().decode("utf8")
-    recipe = Recipe(instructions=instructions, ingredients=ingredients)
+    recipe = {"instructions": instructions, "ingredients": ingredients}
     return recipe
 
 
@@ -79,29 +74,29 @@ def parseIngredient(text):
     Ingredients are whitespace-separated words starting with @
 
     >>> parseIngredient(b'@onions to the pan')
-    (Ingredient(name='onions', amount=None), b' to the pan')
+    ({'ingredient': 'onions'}, b' to the pan')
 
     >>> parseIngredient(b'@onions')
-    (Ingredient(name='onions', amount=None), b'')
+    ({'ingredient': 'onions'}, b'')
 
     >>> parseIngredient(b'@onions\nare delicious')
-    (Ingredient(name='onions', amount=None), b'\nare delicious')
+    ({'ingredient': 'onions'}, b'\nare delicious')
 
     Alternatively multi-word ingredients are written between @ and {}
 
     >>> parseIngredient(b'@chopped onions{}')
-    (Ingredient(name='chopped onions', amount=None), b'')
+    ({'ingredient': 'chopped onions'}, b'')
 
     >>> parseIngredient(b'@chopped onions{} to the pan')
-    (Ingredient(name='chopped onions', amount=None), b' to the pan')
+    ({'ingredient': 'chopped onions'}, b' to the pan')
 
     >>> parseIngredient(b'@garlic and @chopped onions{}')
-    (Ingredient(name='garlic', amount=None), b' and @chopped onions{}')
+    ({'ingredient': 'garlic'}, b' and @chopped onions{}')
 
     Ingredient amounts can be specified between curly braces
 
-    >>> parseIngredient(b'@onions{2}')
-    (Ingredient(name='onions', amount=Amount(quantity=2.0, unit=None)), b'')
+    >>> parseIngredient(b'@onions{2%kg}')
+    ({'quantity': 2.0, 'unit': 'kg', 'ingredient': 'onions'}, b'')
 
     A missing closing } results in an error
 
@@ -112,15 +107,16 @@ def parseIngredient(text):
     """
 
     text = exactly(text, b"@")
-    amount = None
+    result = {}
     (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
     if len(remaining) > 0 and remaining[0] == ord("{"):
         (amount, remaining) = parseAmount(remaining)
+        if amount is not None:
+            result = amount
     else:
         (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
-
-    name = intern(bytes(ingredient).decode("utf8"))
-    return (Ingredient(name=name, amount=amount), remaining)
+    result["ingredient"] = intern(bytes(ingredient).decode("utf8"))
+    return (result, remaining)
 
 
 def parseAmount(text):
@@ -131,12 +127,12 @@ def parseAmount(text):
     (None, b' hi')
 
     >>> parseAmount(b'{2.5}')
-    (Amount(quantity=2.5, unit=None), b'')
+    ({'quantity': 2.5}, b'')
 
     A unit can be provided behind a percentage sign.
 
     >>> parseAmount(b"{2%kg}")
-    (Amount(quantity=2.0, unit='kg'), b'')
+    ({'quantity': 2.0, 'unit': 'kg'}, b'')
 
     Passing an invalid amount raises an exception.
 
@@ -151,11 +147,9 @@ def parseAmount(text):
     amount = None
     if amountString != b"":
         (quantityString, rest) = takeWhile(amountString, lambda char: char != ord("%"))
-        unit = None
+        amount = {"quantity": number(quantityString)}
         if len(rest) > 0:
-            unit = intern(bytes(rest[1:]).decode("utf8"))
-        quantity = number(quantityString)
-        amount = Amount(quantity=quantity, unit=unit)
+            amount["unit"] = intern(bytes(rest[1:]).decode("utf8"))
     text = exactly(text, b"}")
 
     return (amount, text)
