@@ -21,6 +21,24 @@ def parseRecipe(text):
 , 'cookwares': []\
 , 'timers': []\
 }
+
+    Block-comments are ignored. Single [ brackets don't mess things up.
+
+    >>> parseRecipe(b'Add the [nice] @onions [- TODO use spring onions -] and stir')
+    {'instructions': 'Add the [nice] onions  and stir'\
+, 'ingredients': [{'name': 'onions'}]\
+, 'cookwares': []\
+, 'timers': []\
+}
+
+    Block-comments without closing bracket are accepted.
+
+    >>> parseRecipe(b'Add the [nice] @onions [- TODO use spring onions')
+    {'instructions': 'Add the [nice] onions '\
+, 'ingredients': [{'name': 'onions'}]\
+, 'cookwares': []\
+, 'timers': []\
+}
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -35,7 +53,7 @@ def parseRecipe(text):
     instructionBuilder = Builder()
 
     while True:
-        (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-")
+        (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-[")
         instructionBuilder.append(instruction)
         match text[0:1]:
             case b"":
@@ -45,6 +63,14 @@ def parseRecipe(text):
                     (_, text) = takeWhile(text, lambda char: char != ord("\n"))
                 else:
                     instructionBuilder.append(b"-")
+                    text = text[1:]
+            case b"[":
+                if text[0:2] == b"[-":
+                    while not (text[0:2] == b"" or text[0:2] == b"-]"):
+                        text = text[1:]
+                    text = text[2:]
+                else:
+                    instructionBuilder.append(b"[")
                     text = text[1:]
             case b"@":
                 (ingredient, text) = parseTerm(text[1:])
