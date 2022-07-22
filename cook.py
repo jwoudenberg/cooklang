@@ -5,6 +5,8 @@ Recipe = namedtuple("Recipe", ["instructions", "ingredients"])
 
 Ingredient = namedtuple("Ingredient", ["name", "amount"])
 
+Amount = namedtuple("Amount", ["quantity", "unit"])
+
 
 def parseRecipe(text):
     """
@@ -99,7 +101,7 @@ def parseIngredient(text):
     Ingredient amounts can be specified between curly braces
 
     >>> parseIngredient(b'@onions{2}')
-    (Ingredient(name='onions', amount=2.0), b'')
+    (Ingredient(name='onions', amount=Amount(quantity=2.0, unit=None)), b'')
 
     A missing closing } results in an error
 
@@ -129,7 +131,14 @@ def parseAmount(text):
     (None, b' hi')
 
     >>> parseAmount(b'{2.5}')
-    (2.5, b'')
+    (Amount(quantity=2.5, unit=None), b'')
+
+    A unit can be provided behind a percentage sign.
+
+    >>> parseAmount(b"{2%kg}")
+    (Amount(quantity=2.0, unit='kg'), b'')
+
+    Passing an invalid amount raises an exception.
 
     >>> parseAmount(b'{hi}')
     Traceback (most recent call last):
@@ -138,10 +147,15 @@ def parseAmount(text):
     """
 
     text = exactly(text, b"{")
-    (numberString, text) = takeWhile(text, lambda char: char not in b"}\n")
+    (amountString, text) = takeWhile(text, lambda char: char not in b"}\n")
     amount = None
-    if numberString != b"":
-        amount = number(numberString)
+    if amountString != b"":
+        (quantityString, rest) = takeWhile(amountString, lambda char: char != ord("%"))
+        unit = None
+        if len(rest) > 0:
+            unit = intern(bytes(rest[1:]).decode("utf8"))
+        quantity = number(quantityString)
+        amount = Amount(quantity=quantity, unit=unit)
     text = exactly(text, b"}")
 
     return (amount, text)
