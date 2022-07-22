@@ -210,17 +210,6 @@ def exactly(text, expected):
         raise ParseException(f"Expected {expected} but got {text[0:expectedSize]}")
 
 
-def take(text, n):
-    """
-    Split a string after the provided number of characters.
-
-    >>> take('what a day', 4)
-    ('what', ' a day')
-    """
-
-    return (text[0:n], text[n:])
-
-
 def takeWhile(text, predicate):
     """
     Split a string on the first character that matches a predicate.
