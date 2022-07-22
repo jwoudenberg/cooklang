@@ -11,6 +11,7 @@ def parseRecipe(text):
 , 'ingredients': [{'name': 'chopped onions'}]\
 , 'cookwares': [{'name': 'pan'}]\
 , 'timers': [{'quantity': 5.0, 'unit': 'minutes'}]\
+, 'metadata': {}\
 }
 
     Line-comments are ignored. Single hyphens don't mess things up
@@ -20,6 +21,7 @@ def parseRecipe(text):
 , 'ingredients': [{'name': 'alcohol-free beer'}]\
 , 'cookwares': []\
 , 'timers': []\
+, 'metadata': {}\
 }
 
     Block-comments are ignored. Single [ brackets don't mess things up.
@@ -29,6 +31,7 @@ def parseRecipe(text):
 , 'ingredients': [{'name': 'onions'}]\
 , 'cookwares': []\
 , 'timers': []\
+, 'metadata': {}\
 }
 
     Block-comments without closing bracket are accepted.
@@ -38,6 +41,16 @@ def parseRecipe(text):
 , 'ingredients': [{'name': 'onions'}]\
 , 'cookwares': []\
 , 'timers': []\
+, 'metadata': {}\
+}
+
+    The start of the recipe can contain metadata.
+    >>> parseRecipe(b'>> servings: 2\\n>>course: dinner\\nAdd the @onions')
+    {'instructions': 'Add the onions'\
+, 'ingredients': [{'name': 'onions'}]\
+, 'cookwares': []\
+, 'timers': []\
+, 'metadata': {'servings': '2', 'course': 'dinner'}\
 }
     """
 
@@ -50,8 +63,21 @@ def parseRecipe(text):
     ingredients = []
     cookwares = []
     timers = []
+    metadata = {}
     instructionBuilder = Builder()
 
+    # Parse metadata
+    while text[0:2] == b">>":
+        text = text[2:]
+        (_, text) = whitespace(text)
+        (key, text) = takeWhile(text, lambda char: char != ord(":"))
+        text = text[1:]
+        (_, text) = whitespace(text)
+        (val, text) = takeWhile(text, lambda char: char != ord("\n"))
+        (_, text) = whitespace(text)
+        metadata[key.tobytes().decode("utf8")] = val.tobytes().decode("utf8")
+
+    # Parse the rest of the recipe
     while True:
         (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-[")
         instructionBuilder.append(instruction)
@@ -97,6 +123,7 @@ def parseRecipe(text):
         "ingredients": ingredients,
         "cookwares": cookwares,
         "timers": timers,
+        "metadata": metadata,
     }
     return recipe
 
@@ -272,6 +299,10 @@ def exactly(text, expected):
         return text[expectedSize:]
     else:
         raise ParseException(f"Expected {expected} but got {text[0:expectedSize]}")
+
+
+def whitespace(text):
+    return takeWhile(text, lambda char: char in b" \t\n")
 
 
 def takeWhile(text, predicate):
