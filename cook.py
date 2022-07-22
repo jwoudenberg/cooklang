@@ -6,12 +6,12 @@ def parseRecipe(text):
     """
     Parse a cooklang recipe text
 
-    >>> parseRecipe(b'Add the @chopped onions{} to the @garlic')
-    {'instructions': 'Add the chopped onions to the garlic', \
-'ingredients': [\
-{'ingredient': 'chopped onions'}, \
-{'ingredient': 'garlic'}\
-]}
+    >>> parseRecipe(b'Add the @chopped onions{} to a #pan and simmer for ~{5%minutes}')
+    {'instructions': 'Add the chopped onions to a pan and simmer for 5.0 minutes'\
+, 'ingredients': [{'name': 'chopped onions'}]\
+, 'cookwares': [{'name': 'pan'}]\
+, 'timers': [{'quantity': 5.0, 'unit': 'minutes'}]\
+}
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -21,19 +21,42 @@ def parseRecipe(text):
     # this seems a good optimization.
     text = memoryview(text)
     ingredients = []
+    cookwares = []
+    timers = []
     instructionBuilder = Builder()
 
     while True:
-        (instruction, text) = takeWhile(text, lambda char: char != ord("@"))
-        if text == b"":
-            break
+        (instruction, text) = takeWhile(text, lambda char: char not in b"@#~")
         instructionBuilder.append(instruction)
-        (ingredient, text) = parseIngredient(memoryview(text))
-        ingredients.append(ingredient)
-        instructionBuilder.append(bytes(ingredient["ingredient"], encoding="utf8"))
+        match text[0:1]:
+            case b"":
+                break
+            case b"@":
+                (ingredient, text) = parseTerm(text[1:])
+                ingredients.append(ingredient)
+                instructionBuilder.append(bytes(ingredient["name"], encoding="utf8"))
+            case b"#":
+                (cookware, text) = parseTerm(text[1:])
+                cookwares.append(cookware)
+                instructionBuilder.append(bytes(cookware["name"], encoding="utf8"))
+            case b"~":
+                (timer, text) = parseTerm(text[1:])
+                timers.append(timer)
+                quantity = timer["quantity"]
+                unit = timer["unit"]
+                instructionBuilder.append(bytes(f"{quantity} {unit}", encoding="utf8"))
+            case next:
+                raise ValueError(
+                    f"Expected a @, #, or ~ symbol but got {next.tobytes()}"
+                )
 
     instructions = instructionBuilder.tobytes().decode("utf8")
-    recipe = {"instructions": instructions, "ingredients": ingredients}
+    recipe = {
+        "instructions": instructions,
+        "ingredients": ingredients,
+        "cookwares": cookwares,
+        "timers": timers,
+    }
     return recipe
 
 
@@ -67,56 +90,62 @@ class Builder:
         return result
 
 
-def parseIngredient(text):
+def parseTerm(text):
     r"""
-    Parse a cooklang ingredient"
+    Parse a cooklang ingredient, cookware, or timer.
 
-    Ingredients are whitespace-separated words starting with @
+    >>> parseTerm(b'onions to the pan')
+    ({'name': 'onions'}, b' to the pan')
 
-    >>> parseIngredient(b'@onions to the pan')
-    ({'ingredient': 'onions'}, b' to the pan')
+    >>> parseTerm(b'onions')
+    ({'name': 'onions'}, b'')
 
-    >>> parseIngredient(b'@onions')
-    ({'ingredient': 'onions'}, b'')
+    >>> parseTerm(b'onions\nare delicious')
+    ({'name': 'onions'}, b'\nare delicious')
 
-    >>> parseIngredient(b'@onions\nare delicious')
-    ({'ingredient': 'onions'}, b'\nare delicious')
+    Alternatively multi-word terms are ended by {}
 
-    Alternatively multi-word ingredients are written between @ and {}
+    >>> parseTerm(b'chopped onions{}')
+    ({'name': 'chopped onions'}, b'')
 
-    >>> parseIngredient(b'@chopped onions{}')
-    ({'ingredient': 'chopped onions'}, b'')
+    >>> parseTerm(b'chopped onions{} to the pan')
+    ({'name': 'chopped onions'}, b' to the pan')
 
-    >>> parseIngredient(b'@chopped onions{} to the pan')
-    ({'ingredient': 'chopped onions'}, b' to the pan')
+    >>> parseTerm(b'garlic and @chopped onions{}')
+    ({'name': 'garlic'}, b' and @chopped onions{}')
 
-    >>> parseIngredient(b'@garlic and @chopped onions{}')
-    ({'ingredient': 'garlic'}, b' and @chopped onions{}')
+    Amounts can be specified between curly braces
 
-    Ingredient amounts can be specified between curly braces
+    >>> parseTerm(b'onions{2%kg}')
+    ({'quantity': 2.0, 'unit': 'kg', 'name': 'onions'}, b'')
 
-    >>> parseIngredient(b'@onions{2%kg}')
-    ({'quantity': 2.0, 'unit': 'kg', 'ingredient': 'onions'}, b'')
+    The name is optional (to support anonymous timers)
+
+    >>> parseTerm(b'{2%minutes} hi')
+    ({'quantity': 2.0, 'unit': 'minutes'}, b' hi')
 
     A missing closing } results in an error
 
-    >>> parseIngredient(b'@chopped onions{')
+    >>> parseTerm(b'chopped onions{')
     Traceback (most recent call last):
     ...
     ParseException: Expected b'}' but got b''
     """
 
-    text = exactly(text, b"@")
-    result = {}
-    (ingredient, remaining) = takeWhile(text, lambda char: char not in b"{@\n")
-    if len(remaining) > 0 and remaining[0] == ord("{"):
+    term = {}
+    (name, remaining) = takeWhile(text, lambda char: char not in b"{@#~\n")
+
+    if remaining[0:1] == b"{":
         (amount, remaining) = parseAmount(remaining)
         if amount is not None:
-            result = amount
+            term = amount
     else:
-        (ingredient, remaining) = takeWhile(text, lambda char: char not in b" \n")
-    result["ingredient"] = intern(bytes(ingredient).decode("utf8"))
-    return (result, remaining)
+        (name, remaining) = takeWhile(text, lambda char: char not in b" \n")
+
+    if name != b"":
+        term["name"] = intern(bytes(name).decode("utf8"))
+
+    return (term, remaining)
 
 
 def parseAmount(text):
