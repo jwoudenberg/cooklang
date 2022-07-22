@@ -171,6 +171,11 @@ def parseTerm(text):
     >>> parseTerm(b'onions\nare delicious')
     ({'name': 'onions'}, b'\nare delicious')
 
+    Interpunction after a name is not part of the name.
+
+    >>> parseTerm(b"onions, they're the best")
+    ({'name': 'onions'}, b", they're the best")
+
     Alternatively multi-word terms are ended by {}
 
     >>> parseTerm(b'chopped onions{}')
@@ -208,7 +213,9 @@ def parseTerm(text):
         if amount is not None:
             term = amount
     else:
-        (name, remaining) = takeWhile(text, lambda char: char not in b" \n")
+        (name, remaining) = takeWhile(
+            text, lambda char: chr(char).isalpha() or char in b"-"
+        )
 
     if name != b"":
         term["name"] = intern(bytes(name).decode("utf8"))
