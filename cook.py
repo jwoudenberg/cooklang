@@ -310,6 +310,13 @@ def exactly(text, expected):
 
 
 def whitespace(text):
+    r"""
+    Parse any amount of whitespace.
+
+    >>> whitespace(b'   \t \n\n hi there')
+    (b'   \t \n\n ', b'hi there')
+    """
+
     return takeWhile(text, lambda char: char in b" \t\n")
 
 
