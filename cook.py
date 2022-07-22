@@ -45,6 +45,7 @@ def parseRecipe(text):
 }
 
     The start of the recipe can contain metadata.
+
     >>> parseRecipe(b'>> servings: 2\\n>>course: dinner\\nAdd the @onions')
     {'instructions': 'Add the onions'\
 , 'ingredients': [{'name': 'onions'}]\
