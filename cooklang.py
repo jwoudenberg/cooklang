@@ -1,5 +1,9 @@
-from collections import namedtuple
 from sys import intern
+
+"""
+A parser for the cooklang language, as specified here:
+https://cooklang.org/docs/spec/
+"""
 
 
 def parseRecipe(text):
@@ -203,7 +207,7 @@ def parseTerm(text):
     >>> parseTerm(b'chopped onions{')
     Traceback (most recent call last):
     ...
-    ParseException: Expected b'}' but got b''
+    cooklang.ParseException: Expected b'}' but got b''
     """
 
     term = {}
@@ -244,7 +248,7 @@ def parseAmount(text):
     >>> parseAmount(b'{hi}')
     Traceback (most recent call last):
     ...
-    ParseException: Expected a number but got b'hi'
+    cooklang.ParseException: Expected a number but got b'hi'
     """
 
     text = exactly(text, b"{")
@@ -280,7 +284,7 @@ def number(text):
     >>> number(b"hi")
     Traceback (most recent call last):
     ...
-    ParseException: Expected a number but got b'hi'
+    cooklang.ParseException: Expected a number but got b'hi'
     """
 
     try:
@@ -299,7 +303,7 @@ def exactly(text, expected):
     >>> exactly(b"hi there", b"ho") is None
     Traceback (most recent call last):
     ...
-    ParseException: Expected b'ho' but got b'hi'
+    cooklang.ParseException: Expected b'ho' but got b'hi'
     """
 
     expectedSize = len(expected)
@@ -340,12 +344,3 @@ def takeWhile(text, predicate):
     result = text[0:index]
     remaining = text[index:]
     return (result, remaining)
-
-
-# Example and tests
-import doctest
-
-doctest.testmod()
-
-parsed = parseRecipe(b"Then add @salt and @ground black pepper{} to taste.")
-print(parsed)
