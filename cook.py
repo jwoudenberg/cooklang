@@ -12,6 +12,15 @@ def parseRecipe(text):
 , 'cookwares': [{'name': 'pan'}]\
 , 'timers': [{'quantity': 5.0, 'unit': 'minutes'}]\
 }
+
+    Line-comments are ignored. Single hyphens don't mess things up
+
+    >>> parseRecipe(b'Add the six-pack of @alcohol-free beer{} -- or subtract them')
+    {'instructions': 'Add the six-pack of alcohol-free beer '\
+, 'ingredients': [{'name': 'alcohol-free beer'}]\
+, 'cookwares': []\
+, 'timers': []\
+}
     """
 
     # Normally when taking a slice out of a bytestring python copies the slice
@@ -26,11 +35,17 @@ def parseRecipe(text):
     instructionBuilder = Builder()
 
     while True:
-        (instruction, text) = takeWhile(text, lambda char: char not in b"@#~")
+        (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-")
         instructionBuilder.append(instruction)
         match text[0:1]:
             case b"":
                 break
+            case b"-":
+                if text[0:2] == b"--":
+                    (_, text) = takeWhile(text, lambda char: char != ord("\n"))
+                else:
+                    instructionBuilder.append(b"-")
+                    text = text[1:]
             case b"@":
                 (ingredient, text) = parseTerm(text[1:])
                 ingredients.append(ingredient)
