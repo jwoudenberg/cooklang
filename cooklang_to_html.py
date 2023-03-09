@@ -29,6 +29,17 @@ def toHtml(recipe):
 <body>\
 <h1>Food</h1>\
 </body></html>'
+
+    Adds <meta/> tags for metadata entries
+
+    >>> toHtml({ 'metadata': { 'desert': True } })
+    '<!DOCTYPE html><html>\
+<head>\
+<meta charset="utf8"></meta>\
+<meta name="desert" content="True"></meta>\
+</head>\
+<body>\
+</body></html>'
     """
 
     ingredients = recipe.get("ingredients", None)
@@ -52,6 +63,8 @@ def toHtml(recipe):
 
     def printHead(builder):
         tag(builder, b"meta", None, {"charset": "utf8"})
+        for key, value in metadata.items():
+            tag(builder, b"meta", None, {"name": key, "content": value})
         if title is not None:
             tag(builder, b"title", title)
 
@@ -99,7 +112,7 @@ def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
         builder.append(b" ")
         builder.append(key.encode("utf8"))
         builder.append(b'="')
-        builder.append(html.escape(value).encode("utf8"))
+        builder.append(html.escape(str(value)).encode("utf8"))
         builder.append(b'"')
     builder.append(b">")
     if callable(inTag):
