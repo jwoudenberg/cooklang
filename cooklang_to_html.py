@@ -18,6 +18,18 @@ def toHtml(recipe):
 <p>Chop onions</p>\
 </body></html>'
 
+    Show ingredients with servings
+
+    >>> toHtml({ 'ingredients': [{'name': 'onions'}], 'metadata': {'servings': 3} })
+    '<!DOCTYPE html><html>\
+<head>\
+<meta charset="utf8"></meta>\
+</head>\
+<body>\
+<h2>Ingredients (serves 3)</h2>\
+<ul><li>onions</li></ul>\
+</body></html>'
+
     Show a recipe title.
 
     >>> toHtml({ 'metadata': { 'title': 'Food' } })
@@ -46,6 +58,7 @@ def toHtml(recipe):
     instructions = recipe.get("instructions", None)
     metadata = recipe.get("metadata", {})
     title = metadata.pop("title", None)
+    servings = metadata.pop("servings", None)
 
     def printIngredients(builder):
         for ingredient in ingredients:
@@ -55,7 +68,10 @@ def toHtml(recipe):
         if title is not None:
             tag(builder, b"h1", title)
         if ingredients is not None:
-            tag(builder, b"h2", "Ingredients")
+            if servings is not None:
+                tag(builder, b"h2", f"Ingredients (serves {servings})")
+            else:
+                tag(builder, b"h2", "Ingredients")
             tag(builder, b"ul", printIngredients)
         if instructions is not None:
             tag(builder, b"h2", "Instructions")
