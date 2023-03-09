@@ -8,7 +8,9 @@ def toHtml(recipe):
 
     >>> toHtml({ 'instructions': 'Chop onions', 'ingredients': [{'name': 'onions'}] })
     '<!DOCTYPE html><html>\
-<head></head>\
+<head>\
+<meta charset="utf8"></meta>\
+</head>\
 <body>\
 <h2>Ingredients</h2>\
 <ul><li>onions</li></ul>\
@@ -17,9 +19,13 @@ def toHtml(recipe):
 </body></html>'
 
     Show a recipe title.
+
     >>> toHtml({ 'metadata': { 'title': 'Food' } })
     '<!DOCTYPE html><html>\
-<head><title>Food</title></head>\
+<head>\
+<meta charset="utf8"></meta>\
+<title>Food</title>\
+</head>\
 <body>\
 <h1>Food</h1>\
 </body></html>'
@@ -45,6 +51,7 @@ def toHtml(recipe):
             tag(builder, b"p", instructions)
 
     def printHead(builder):
+        tag(builder, b"meta", None, {"charset": "utf8"})
         if title is not None:
             tag(builder, b"title", title)
 
@@ -58,7 +65,7 @@ def toHtml(recipe):
     return builder.tobytes().decode("utf8")
 
 
-def tag(builder, tagname, inTag=lambda _: {}):
+def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
     """
     Render an empty html tag
 
@@ -74,14 +81,30 @@ def tag(builder, tagname, inTag=lambda _: {}):
 
     >>> tag(Builder(), b'art', lambda b: tag(b, b'red')).tobytes().decode('utf8')
     '<art><red></red></art>'
+
+    Render an empty html tag when third argument is explicit 'None'
+
+    >>> tag(Builder(), b'art', None).tobytes().decode('utf8')
+    '<art></art>'
+
+    Render an html tag with attributes
+
+    >>> tag(Builder(), b'meta', None, { 'charset': "utf8" }).tobytes().decode('utf8')
+    '<meta charset="utf8"></meta>'
     """
 
     builder.append(b"<")
     builder.append(tagname)
+    for key, value in attributes.items():
+        builder.append(b" ")
+        builder.append(key.encode("utf8"))
+        builder.append(b'="')
+        builder.append(html.escape(value).encode("utf8"))
+        builder.append(b'"')
     builder.append(b">")
     if callable(inTag):
         inTag(builder)
-    else:
+    elif inTag is not None:
         builder.append(html.escape(inTag).encode("utf8"))
     builder.append(b"</")
     builder.append(tagname)
