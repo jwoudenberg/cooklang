@@ -13,16 +13,26 @@ def toHtml(recipe):
 <h2>Instructions</h2>\
 <p>Chop onions</p>\
 </body></html>'
+
+    Show a recipe title.
+    >>> toHtml({ 'metadata': { 'title': 'Food' } })
+    '<!DOCTYPE html><html><body>\
+<h1>Food</h1>\
+</body></html>'
     """
 
     ingredients = recipe.get("ingredients", None)
     instructions = recipe.get("instructions", None)
+    metadata = recipe.get("metadata", {})
+    title = metadata.pop("title", None)
 
     def printIngredients(builder):
         for ingredient in ingredients:
             tag(builder, b"li", ingredientToText(ingredient))
 
     def printBody(builder):
+        if title is not None:
+            tag(builder, b"h1", title)
         if ingredients is not None:
             tag(builder, b"h2", "Ingredients")
             tag(builder, b"ul", printIngredients)
