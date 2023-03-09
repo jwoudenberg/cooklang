@@ -7,7 +7,7 @@ def toHtml(recipe):
     Render a recipe as an HTML page.
 
     >>> toHtml({ 'instructions': 'Chop onions', 'ingredients': [{'name': 'onions'}] })
-    '<html><body>\
+    '<!DOCTYPE html><html><body>\
 <h2>Ingredients</h2>\
 <ul><li>onions</li></ul>\
 <h2>Instructions</h2>\
@@ -31,6 +31,7 @@ def toHtml(recipe):
             tag(builder, b"p", instructions)
 
     builder = Builder()
+    builder.append(b"<!DOCTYPE html>")
     tag(builder, b"html", lambda builder: tag(builder, b"body", printBody))
     return builder.tobytes().decode("utf8")
 
