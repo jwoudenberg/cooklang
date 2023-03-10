@@ -1,0 +1,28 @@
+# Generate HTML for a simple recipe
+<<<
+>> title: Boiled potatoes
+>> servings: 2
+>> course: dinner
+Put the @patatoes{4} in a #pan and add @water{1%L} and some @salt. Boil for 12 minutes.
+$$$ ./cooklang-to-html | tidy -quiet -indent --tidy-mark false
+>>>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="course" content="dinner">
+  <title>Boiled potatoes</title>
+</head>
+<body>
+  <h1>Boiled potatoes</h1>
+  <h2>Ingredients (serves 2)</h2>
+  <ul>
+    <li>patatoes, 4.0</li>
+    <li>water, 1.0 L</li>
+    <li>salt</li>
+  </ul>
+  <h2>Instructions</h2>
+  <p>Put the patatoes in a pan and add water and some salt. Boil
+  for 12 minutes.</p>
+</body>
+</html>

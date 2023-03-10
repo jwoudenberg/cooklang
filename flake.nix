@@ -13,6 +13,8 @@
       in {
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
+            pkgs.haskellPackages.shelltestrunner
+            pkgs.html-tidy
             pkgs."${python}"
             pkgs."${python}Packages".black
             pkgs."${python}Packages".flake8

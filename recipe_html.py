@@ -7,51 +7,51 @@ def toHtml(recipe):
     Render a recipe as an HTML page.
 
     >>> toHtml({ 'instructions': 'Chop onions', 'ingredients': [{'name': 'onions'}] })
-    '<!DOCTYPE html><html>\
+    bytearray(b'<!DOCTYPE html><html>\
 <head>\
-<meta charset="utf8"></meta>\
+<meta charset="utf-8"/>\
 </head>\
 <body>\
 <h2>Ingredients</h2>\
 <ul><li>onions</li></ul>\
 <h2>Instructions</h2>\
 <p>Chop onions</p>\
-</body></html>'
+</body></html>')
 
     Show ingredients with servings
 
     >>> toHtml({ 'ingredients': [{'name': 'onions'}], 'metadata': {'servings': 3} })
-    '<!DOCTYPE html><html>\
+    bytearray(b'<!DOCTYPE html><html>\
 <head>\
-<meta charset="utf8"></meta>\
+<meta charset="utf-8"/>\
 </head>\
 <body>\
 <h2>Ingredients (serves 3)</h2>\
 <ul><li>onions</li></ul>\
-</body></html>'
+</body></html>')
 
     Show a recipe title.
 
     >>> toHtml({ 'metadata': { 'title': 'Food' } })
-    '<!DOCTYPE html><html>\
+    bytearray(b'<!DOCTYPE html><html>\
 <head>\
-<meta charset="utf8"></meta>\
+<meta charset="utf-8"/>\
 <title>Food</title>\
 </head>\
 <body>\
 <h1>Food</h1>\
-</body></html>'
+</body></html>')
 
     Adds <meta/> tags for metadata entries
 
     >>> toHtml({ 'metadata': { 'desert': True } })
-    '<!DOCTYPE html><html>\
+    bytearray(b'<!DOCTYPE html><html>\
 <head>\
-<meta charset="utf8"></meta>\
-<meta name="desert" content="True"></meta>\
+<meta charset="utf-8"/>\
+<meta name="desert" content="True"/>\
 </head>\
 <body>\
-</body></html>'
+</body></html>')
     """
 
     ingredients = recipe.get("ingredients", None)
@@ -78,7 +78,7 @@ def toHtml(recipe):
             tag(builder, b"p", instructions)
 
     def printHead(builder):
-        tag(builder, b"meta", None, {"charset": "utf8"})
+        tag(builder, b"meta", None, {"charset": "utf-8"})
         for key, value in metadata.items():
             tag(builder, b"meta", None, {"name": key, "content": value})
         if title is not None:
@@ -91,7 +91,7 @@ def toHtml(recipe):
     builder = Builder()
     builder.append(b"<!DOCTYPE html>")
     tag(builder, b"html", printHtml)
-    return builder.tobytes().decode("utf8")
+    return builder.tobytes()
 
 
 def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
@@ -114,13 +114,18 @@ def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
     Render an empty html tag when third argument is explicit 'None'
 
     >>> tag(Builder(), b'art', None).tobytes().decode('utf8')
-    '<art></art>'
+    '<art/>'
 
     Render an html tag with attributes
 
     >>> tag(Builder(), b'meta', None, { 'charset': "utf8" }).tobytes().decode('utf8')
-    '<meta charset="utf8"></meta>'
+    '<meta charset="utf8"/>'
     """
+
+    def appendCloseTag():
+        builder.append(b"</")
+        builder.append(tagname)
+        builder.append(b">")
 
     builder.append(b"<")
     builder.append(tagname)
@@ -130,14 +135,17 @@ def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
         builder.append(b'="')
         builder.append(html.escape(str(value)).encode("utf8"))
         builder.append(b'"')
-    builder.append(b">")
     if callable(inTag):
+        builder.append(b">")
         inTag(builder)
+        appendCloseTag()
     elif inTag is not None:
+        builder.append(b">")
         builder.append(html.escape(inTag).encode("utf8"))
-    builder.append(b"</")
-    builder.append(tagname)
-    builder.append(b">")
+        appendCloseTag()
+    else:
+        builder.append(b"/>")
+
     return builder
 
 
