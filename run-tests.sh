@@ -2,5 +2,5 @@
 
 set -euxo pipefail
 
-python -m doctest -v ./*.py
+python -m doctest -v ./src/*.py
 shelltest --hide-successes .
