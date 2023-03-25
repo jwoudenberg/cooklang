@@ -19,6 +19,12 @@ class Builder:
         self.chunks.append(chunk)
         self.size += len(chunk)
 
+    def getChunks(self):
+        return self.chunks
+
+    def extend(self, builder):
+        self.chunks.extend(builder.getChunks())
+
     def tobytes(self):
         result = bytearray(self.size)
         index = 0

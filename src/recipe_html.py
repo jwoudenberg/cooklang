@@ -1,97 +1,63 @@
 import html
+import cooklang
 from builder import Builder
 
 
-def toHtml(recipe):
-    """
-    Render a recipe as an HTML page.
+def toHtml(recipeText):
+    return cooklang.parseRecipe(recipeText, HtmlRecipe).html()
 
-    >>> toHtml({ 'instructions': 'Chop onions', 'ingredients': [{'name': 'onions'}] })
-    bytearray(b'<!DOCTYPE html><html>\
-<head>\
-<meta charset="utf-8"/>\
-</head>\
-<body>\
-<h2>Ingredients</h2>\
-<ul><li>onions</li></ul>\
-<h2>Instructions</h2>\
-<p>Chop onions</p>\
-</body></html>')
 
-    Show ingredients with servings
+class HtmlRecipe:
+    def __init__(self, metadata):
+        self.instructions = Builder()
+        self.ingredients = []
+        self.title = metadata.pop("title", None)
+        self.servings = metadata.pop("servings", None)
+        self.metadata = metadata
 
-    >>> toHtml({ 'ingredients': [{'name': 'onions'}], 'metadata': {'servings': 3} })
-    bytearray(b'<!DOCTYPE html><html>\
-<head>\
-<meta charset="utf-8"/>\
-</head>\
-<body>\
-<h2>Ingredients (serves 3)</h2>\
-<ul><li>onions</li></ul>\
-</body></html>')
+    def html(self):
+        html = Builder()
+        html.append(b"<!DOCTYPE html>")
+        tag(html, b"head", self.printHead)
+        tag(html, b"body", self.printBody)
+        return html.tobytes()
 
-    Show a recipe title.
-
-    >>> toHtml({ 'metadata': { 'title': 'Food' } })
-    bytearray(b'<!DOCTYPE html><html>\
-<head>\
-<meta charset="utf-8"/>\
-<title>Food</title>\
-</head>\
-<body>\
-<h1>Food</h1>\
-</body></html>')
-
-    Adds <meta/> tags for metadata entries
-
-    >>> toHtml({ 'metadata': { 'desert': True } })
-    bytearray(b'<!DOCTYPE html><html>\
-<head>\
-<meta charset="utf-8"/>\
-<meta name="desert" content="True"/>\
-</head>\
-<body>\
-</body></html>')
-    """
-
-    ingredients = recipe.get("ingredients", None)
-    instructions = recipe.get("instructions", None)
-    metadata = recipe.get("metadata", {})
-    title = metadata.pop("title", None)
-    servings = metadata.pop("servings", None)
-
-    def printIngredients(builder):
-        for ingredient in ingredients:
+    def printIngredients(self, builder):
+        for ingredient in self.ingredients:
             tag(builder, b"li", ingredientToText(ingredient))
 
-    def printBody(builder):
-        if title is not None:
-            tag(builder, b"h1", title)
-        if ingredients is not None:
-            if servings is not None:
-                tag(builder, b"h2", f"Ingredients (serves {servings})")
-            else:
-                tag(builder, b"h2", "Ingredients")
-            tag(builder, b"ul", printIngredients)
-        if instructions is not None:
-            tag(builder, b"h2", "Instructions")
-            tag(builder, b"p", instructions)
+    def printBody(self, builder):
+        if self.title is not None:
+            tag(builder, b"h1", self.title)
+        if self.servings is not None:
+            tag(builder, b"h2", f"Ingredients (serves {self.servings})")
+        else:
+            tag(builder, b"h2", "Ingredients")
+        tag(builder, b"ul", self.printIngredients)
+        tag(builder, b"h2", "Instructions")
+        tag(builder, b"p", lambda builder: builder.extend(self.instructions))
 
-    def printHead(builder):
+    def printHead(self, builder):
         tag(builder, b"meta", None, {"charset": "utf-8"})
-        for key, value in metadata.items():
+        for key, value in self.metadata.items():
             tag(builder, b"meta", None, {"name": key, "content": value})
-        if title is not None:
-            tag(builder, b"title", title)
+        if self.title is not None:
+            tag(builder, b"title", self.title)
 
-    def printHtml(builder):
-        tag(builder, b"head", printHead)
-        tag(builder, b"body", printBody)
+    def appendInstruction(self, text):
+        self.instructions.append(text)
 
-    builder = Builder()
-    builder.append(b"<!DOCTYPE html>")
-    tag(builder, b"html", printHtml)
-    return builder.tobytes()
+    def addIngredient(self, ingredient):
+        self.ingredients.append(ingredient)
+        self.instructions.append(bytes(ingredient["name"], encoding="utf8"))
+
+    def addCookware(self, cookware):
+        self.instructions.append(bytes(cookware["name"], encoding="utf8"))
+
+    def addTimer(self, timer):
+        quantity = timer["quantity"]
+        unit = timer["unit"]
+        self.instructions.append(bytes(f"{quantity} {unit}", encoding="utf8"))
 
 
 def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
