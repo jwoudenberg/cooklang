@@ -81,7 +81,7 @@ def parseRecipe(text):
         (_, text) = whitespace(text)
         (val, text) = takeWhile(text, lambda char: char != ord("\n"))
         (_, text) = whitespace(text)
-        metadata[key.tobytes().decode("utf8")] = val.tobytes().decode("utf8")
+        metadata[toUtf8(key)] = toUtf8(val)
 
     # Parse the rest of the recipe
     while True:
@@ -123,7 +123,7 @@ def parseRecipe(text):
                     f"Expected a @, #, or ~ symbol but got {next.tobytes()}"
                 )
 
-    instructions = instructionBuilder.tobytes().decode("utf8")
+    instructions = toUtf8(instructionBuilder.tobytes())
     recipe = {
         "instructions": instructions,
         "ingredients": ingredients,
@@ -194,7 +194,7 @@ def parseTerm(text):
         )
 
     if name != b"":
-        term["name"] = intern(bytes(name).decode("utf8"))
+        term["name"] = intern(toUtf8(name))
 
     return (term, remaining)
 
@@ -229,7 +229,7 @@ def parseAmount(text):
         (quantityString, rest) = takeWhile(amountString, lambda char: char != ord("%"))
         amount = {"quantity": number(quantityString)}
         if len(rest) > 0:
-            amount["unit"] = intern(bytes(rest[1:]).decode("utf8"))
+            amount["unit"] = intern(toUtf8(rest[1:]))
     text = exactly(text, b"}")
 
     return (amount, text)
@@ -315,3 +315,13 @@ def takeWhile(text, predicate):
     result = text[0:index]
     remaining = text[index:]
     return (result, remaining)
+
+
+def toUtf8(bytestr):
+    """
+    Parse a bytestring as utf8
+
+    >>> toUtf8(b'hi')
+    'hi'
+    """
+    return bytes(bytestr).decode("utf8")
