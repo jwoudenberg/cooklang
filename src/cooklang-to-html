@@ -8,7 +8,7 @@ import recipe_html
 def main():
     recipeText = sys.stdin.buffer.read()
     recipe = cooklang.parseRecipe(recipeText)
-    html = recipe_html.toHtml(recipe)
+    html = recipe_html.toHtml(recipe.asDict())
     sys.stdout.buffer.write(html)
 
 

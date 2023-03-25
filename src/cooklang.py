@@ -7,7 +7,46 @@ https://cooklang.org/docs/spec/
 """
 
 
-def parseRecipe(text):
+class Recipe:
+    def __init__(self, metadata):
+        self.metadata = metadata
+        self.ingredients = []
+        self.cookwares = []
+        self.timers = []
+        self.instructions = Builder()
+
+    def appendInstruction(self, text):
+        self.instructions.append(text)
+
+    def addIngredient(self, ingredient):
+        self.ingredients.append(ingredient)
+        self.instructions.append(bytes(ingredient["name"], encoding="utf8"))
+
+    def addCookware(self, cookware):
+        self.cookwares.append(cookware)
+        self.instructions.append(bytes(cookware["name"], encoding="utf8"))
+
+    def addTimer(self, timer):
+        self.timers.append(timer)
+        quantity = timer["quantity"]
+        unit = timer["unit"]
+        self.instructions.append(bytes(f"{quantity} {unit}", encoding="utf8"))
+
+    def asDict(self):
+        instructions = toUtf8(self.instructions.tobytes())
+        return {
+            "instructions": instructions,
+            "ingredients": self.ingredients,
+            "cookwares": self.cookwares,
+            "timers": self.timers,
+            "metadata": self.metadata,
+        }
+
+    def __repr__(self):
+        return self.asDict().__repr__()
+
+
+def parseRecipe(text, createRecipe=Recipe):
     """
     Parse a cooklang recipe text
 
@@ -66,13 +105,9 @@ def parseRecipe(text):
     # original bytestring. Because we will create a lot of slices during parsing
     # this seems a good optimization.
     text = memoryview(text)
-    ingredients = []
-    cookwares = []
-    timers = []
-    metadata = {}
-    instructionBuilder = Builder()
 
     # Parse metadata
+    metadata = {}
     while text[0:2] == b">>":
         text = text[2:]
         (_, text) = whitespace(text)
@@ -82,11 +117,12 @@ def parseRecipe(text):
         (val, text) = takeWhile(text, lambda char: char != ord("\n"))
         (_, text) = whitespace(text)
         metadata[toUtf8(key)] = toUtf8(val)
+    recipe = createRecipe(metadata)
 
     # Parse the rest of the recipe
     while True:
         (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-[")
-        instructionBuilder.append(instruction)
+        recipe.appendInstruction(instruction)
         match text[0:1]:
             case b"":
                 break
@@ -94,7 +130,7 @@ def parseRecipe(text):
                 if text[0:2] == b"--":
                     (_, text) = takeWhile(text, lambda char: char != ord("\n"))
                 else:
-                    instructionBuilder.append(b"-")
+                    recipe.appendInstruction(b"-")
                     text = text[1:]
             case b"[":
                 if text[0:2] == b"[-":
@@ -102,35 +138,22 @@ def parseRecipe(text):
                         text = text[1:]
                     text = text[2:]
                 else:
-                    instructionBuilder.append(b"[")
+                    recipe.appendInstruction(b"[")
                     text = text[1:]
             case b"@":
                 (ingredient, text) = parseTerm(text[1:])
-                ingredients.append(ingredient)
-                instructionBuilder.append(bytes(ingredient["name"], encoding="utf8"))
+                recipe.addIngredient(ingredient)
             case b"#":
                 (cookware, text) = parseTerm(text[1:])
-                cookwares.append(cookware)
-                instructionBuilder.append(bytes(cookware["name"], encoding="utf8"))
+                recipe.addCookware(cookware)
             case b"~":
                 (timer, text) = parseTerm(text[1:])
-                timers.append(timer)
-                quantity = timer["quantity"]
-                unit = timer["unit"]
-                instructionBuilder.append(bytes(f"{quantity} {unit}", encoding="utf8"))
+                recipe.addTimer(timer)
             case next:
                 raise ValueError(
                     f"Expected a @, #, or ~ symbol but got {next.tobytes()}"
                 )
 
-    instructions = toUtf8(instructionBuilder.tobytes())
-    recipe = {
-        "instructions": instructions,
-        "ingredients": ingredients,
-        "cookwares": cookwares,
-        "timers": timers,
-        "metadata": metadata,
-    }
     return recipe
 
 
