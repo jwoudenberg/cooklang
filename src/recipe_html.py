@@ -147,9 +147,14 @@ def ingredientToText(ingredient):
 
     >>> ingredientToText({})
     ''
+
+    Lowercase the ingredient name
+
+    >>> ingredientToText({ 'name': 'Carrots' })
+    'carrots'
     """
 
-    name = ingredient.get("name", "")
+    name = ingredient.get("name", "").lower()
     amount = ingredient.get("quantity", None)
     unit = ingredient.get("unit", None)
     if amount is None and unit is None:

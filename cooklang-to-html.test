@@ -3,7 +3,7 @@
 >> title: Boiled potatoes
 >> servings: 2
 >> course: dinner
-Put @patatoes{4} in a #pan and add @water{1%L} and some @salt. Boil for 12 minutes.
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt. Boil for 12 minutes.
 $$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
 >>>
 <!DOCTYPE html>
@@ -17,12 +17,12 @@ $$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
   <h1>Boiled potatoes</h1>
   <h2>Ingredients (serves 2)</h2>
   <ul>
-    <li>patatoes, 4.0</li>
+    <li>potatoes, 4.0</li>
     <li>water, 1.0 L</li>
     <li>salt</li>
   </ul>
   <h2>Instructions</h2>
-  <p>Put 4.0 patatoes in a pan and add 1.0 L water and some salt.
+  <p>Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.
   Boil for 12 minutes.</p>
 </body>
 </html>
