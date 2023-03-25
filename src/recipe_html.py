@@ -44,27 +44,31 @@ class HtmlRecipe:
         if self.title is not None:
             tag(builder, b"title", self.title)
 
+    def appendEscaped(self, text):
+        escaped = html.escape(text).encode("utf8")
+        self.instructions.append(escaped)
+
     def appendInstruction(self, text):
-        self.instructions.append(text)
+        self.appendEscaped(bytes(text).decode("utf8"))
 
     def addIngredient(self, ingredient):
         name = ingredient["name"]
         quantity = ingredient.get("quantity", None)
         unit = ingredient.get("unit", None)
         if quantity is not None:
-            self.instructions.append(bytes(f"{quantity} ", encoding="utf8"))
+            self.appendEscaped(f"{quantity} ")
         if unit is not None:
-            self.instructions.append(bytes(f"{unit} ", encoding="utf8"))
+            self.appendEscaped(f"{unit} ")
         self.ingredients.append(ingredient)
-        self.instructions.append(bytes(name, encoding="utf8"))
+        self.appendEscaped(name)
 
     def addCookware(self, cookware):
-        self.instructions.append(bytes(cookware["name"], encoding="utf8"))
+        self.appendEscaped(cookware["name"])
 
     def addTimer(self, timer):
         quantity = timer["quantity"]
         unit = timer["unit"]
-        self.instructions.append(bytes(f"{quantity} {unit}", encoding="utf8"))
+        self.appendEscaped(f"{quantity} {unit}")
 
 
 def tag(builder, tagname, inTag=lambda _: {}, attributes={}):

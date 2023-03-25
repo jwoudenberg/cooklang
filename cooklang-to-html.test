@@ -26,3 +26,28 @@ $$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
   Boil for 12 minutes.</p>
 </body>
 </html>
+
+# Escapes special characters in recipe
+<<<
+>> title: <
+>> course: <
+< @<{2.0%<}
+$$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
+>>>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="course" content="&lt;">
+  <title>&lt;</title>
+</head>
+<body>
+  <h1>&lt;</h1>
+  <h2>Ingredients</h2>
+  <ul>
+    <li>&lt;, 2.0 &lt;</li>
+  </ul>
+  <h2>Instructions</h2>
+  <p>&lt; 2.0 &lt; &lt;</p>
+</body>
+</html>
