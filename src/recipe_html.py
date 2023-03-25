@@ -48,8 +48,15 @@ class HtmlRecipe:
         self.instructions.append(text)
 
     def addIngredient(self, ingredient):
+        name = ingredient["name"]
+        quantity = ingredient.get("quantity", None)
+        unit = ingredient.get("unit", None)
+        if quantity is not None:
+            self.instructions.append(bytes(f"{quantity} ", encoding="utf8"))
+        if unit is not None:
+            self.instructions.append(bytes(f"{unit} ", encoding="utf8"))
         self.ingredients.append(ingredient)
-        self.instructions.append(bytes(ingredient["name"], encoding="utf8"))
+        self.instructions.append(bytes(name, encoding="utf8"))
 
     def addCookware(self, cookware):
         self.instructions.append(bytes(cookware["name"], encoding="utf8"))
