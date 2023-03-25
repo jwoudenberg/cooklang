@@ -178,7 +178,7 @@ def parseTerm(text):
     >>> parseTerm(b'chopped onions{')
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected b'}' but got b''
+    cooklang.ParseException: Expected '}' but got ''
     """
 
     term = {}
@@ -219,7 +219,7 @@ def parseAmount(text):
     >>> parseAmount(b'{hi}')
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected a number but got b'hi'
+    cooklang.ParseException: Expected a number but got 'hi'
     """
 
     text = exactly(text, b"{")
@@ -255,13 +255,13 @@ def number(text):
     >>> number(b"hi")
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected a number but got b'hi'
+    cooklang.ParseException: Expected a number but got 'hi'
     """
 
     try:
         return float(text)
     except ValueError:
-        raise ParseException(f"Expected a number but got {text}")
+        raise ParseException(f"Expected a number but got '{toUtf8(text)}'")
 
 
 def exactly(text, expected):
@@ -274,14 +274,16 @@ def exactly(text, expected):
     >>> exactly(b"hi there", b"ho") is None
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected b'ho' but got b'hi'
+    cooklang.ParseException: Expected 'ho' but got 'hi'
     """
 
     expectedSize = len(expected)
     if text[0:expectedSize] == expected:
         return text[expectedSize:]
     else:
-        raise ParseException(f"Expected {expected} but got {text[0:expectedSize]}")
+        raise ParseException(
+            f"Expected '{toUtf8(expected)}' but got '{toUtf8(text[0:expectedSize])}'"
+        )
 
 
 def whitespace(text):
