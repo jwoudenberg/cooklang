@@ -16,15 +16,17 @@ class HtmlRecipe:
         self.metadata = metadata
 
     def html(self):
-        html = Builder()
-        html.append(b"<!DOCTYPE html>")
-        tag(html, b"head", self.printHead)
-        tag(html, b"body", self.printBody)
-        return html.tobytes()
+        builder = Builder()
+        builder.append(b"<!DOCTYPE html>")
+        return tag(builder, b"html", self.printHtml).tobytes()
 
     def printIngredients(self, builder):
         for ingredient in self.ingredients:
             tag(builder, b"li", ingredientToText(ingredient))
+
+    def printHtml(self, html):
+        tag(html, b"head", self.printHead)
+        tag(html, b"body", self.printBody)
 
     def printBody(self, builder):
         if self.title is not None:
