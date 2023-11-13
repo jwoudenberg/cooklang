@@ -10,25 +10,35 @@
       let
         pkgs = import nixpkgs { inherit system; };
         python = "python310";
-      in {
-        packages.cooklang-to-html = pkgs.stdenv.mkDerivation {
-          name = "cooklang-to-html";
-          propagatedBuildInputs = [ pkgs."${python}" ];
-          dontUnpack = true;
-          src = ./src;
-          installPhase = ''
-            mkdir -p $out/bin $out/lib
-            install -D -m=755 $src/* $out/lib
-            ln -s $out/lib/cooklang-to-html $out/bin/cooklang-to-html
-          '';
+        ppkgs = pkgs."${python}Packages";
+
+        cooklang_to_html_lib = ppkgs.buildPythonPackage {
+          pname = "cooklang_to_html";
+          version = "1.0.0";
+          format = "pyproject";
+          src = ./.;
+          nativeBuildInputs = [ ppkgs.setuptools ];
         };
+        cooklang_to_html_pkg = ppkgs.toPythonApplication cooklang_to_html_lib;
+        cooklang_to_html_app = {
+          type = "app";
+          program = "${cooklang_to_html_pkg}/bin/cooklang-to-html";
+        };
+      in
+      {
+        python3Packages.cooklang_to_html = cooklang_to_html_lib;
+        packages.cooklang-to-html = cooklang_to_html_pkg;
+        defaultPackage = cooklang_to_html_pkg;
+        apps.cooklang-to-html = cooklang_to_html_app;
+        defaultApp = cooklang_to_html_app;
+
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
             pkgs.haskellPackages.shelltestrunner
             pkgs.html-tidy
             pkgs."${python}"
-            pkgs."${python}Packages".black
-            pkgs."${python}Packages".flake8
+            ppkgs.black
+            ppkgs.flake8
           ];
         };
       });

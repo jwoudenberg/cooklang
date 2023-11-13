@@ -1,6 +1,6 @@
 import html
-import cooklang
-from builder import Builder
+import cooklang_to_html.cooklang as cooklang
+from cooklang_to_html.builder import Builder
 
 
 def toHtml(recipeText):

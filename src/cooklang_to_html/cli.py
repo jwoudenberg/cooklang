@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-import recipe_html
+import cooklang_to_html.recipe_html as recipe_html
 
 
 def main():

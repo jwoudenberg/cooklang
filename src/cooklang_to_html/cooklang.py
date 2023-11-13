@@ -1,5 +1,5 @@
 from sys import intern
-from builder import Builder
+from cooklang_to_html.builder import Builder
 
 """
 A parser for the cooklang language, as specified here:

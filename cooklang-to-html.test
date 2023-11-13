@@ -4,7 +4,7 @@
 >> servings: 2
 >> course: dinner
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt. Boil for 12 minutes.
-$$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
+$$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
 >>>
 <!DOCTYPE html>
 <html>
@@ -32,7 +32,7 @@ $$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
 >> title: <
 >> course: <
 < @<{2.0%<}
-$$$ ./src/cooklang-to-html | tidy -quiet -indent --tidy-mark false
+$$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
 >>>
 <!DOCTYPE html>
 <html>

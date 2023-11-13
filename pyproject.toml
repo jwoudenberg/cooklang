@@ -1,0 +1,12 @@
+[project]
+name = "cooklang_to_html"
+version = "1.0.0"
+authors = [
+  { name="Jasper Woudenberg", email="mail@jasperwoudenberg.com" },
+]
+description = "A cooklang parser and html renderer"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[project.scripts]
+cooklang-to-html = "cooklang_to_html.cli:main"
