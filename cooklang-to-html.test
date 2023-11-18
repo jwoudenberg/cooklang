@@ -3,8 +3,10 @@
 >> title: Boiled potatoes
 >> servings: 2
 >> course: dinner
-Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt. Boil for 12 minutes.
-$$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ nix run .# 2> /dev/null | tidy -quiet -indent -wrap 1000 --tidy-mark false
 >>>
 <!DOCTYPE html>
 <html>
@@ -22,8 +24,8 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
     <li>salt</li>
   </ul>
   <h2>Instructions</h2>
-  <p>Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.
-  Boil for 12 minutes.</p>
+  <p>Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.</p>
+  <p>Boil for 12 minutes.</p>
 </body>
 </html>
 

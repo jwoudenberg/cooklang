@@ -47,7 +47,7 @@ class HtmlRecipe:
             tag(builder, b"title", self.title)
 
     def appendEscaped(self, text):
-        escaped = html.escape(text).encode("utf8")
+        escaped = html.escape(text).replace("\n\n", "</p><p>").encode("utf8")
         self.instructions.append(escaped)
 
     def appendInstruction(self, text):
