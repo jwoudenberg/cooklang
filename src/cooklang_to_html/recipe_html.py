@@ -3,8 +3,8 @@ import cooklang_to_html.cooklang as cooklang
 from cooklang_to_html.builder import Builder
 
 
-def toHtml(recipeText):
-    return cooklang.parseRecipe(recipeText, HtmlRecipe).html()
+def toHtml(recipeText, **kwargs):
+    return cooklang.parseRecipe(recipeText, HtmlRecipe).html(**kwargs)
 
 
 class HtmlRecipe:
@@ -15,7 +15,15 @@ class HtmlRecipe:
         self.servings = metadata.pop("servings", None)
         self.metadata = metadata
 
-    def html(self):
+    def html(
+        self,
+        i18n_ingredients="Ingredients",
+        i18n_instructions="Instructions",
+        i18n_servings="Serves $servings",
+    ):
+        self.i18n_ingredients = i18n_ingredients
+        self.i18n_instructions = i18n_instructions
+        self.i18n_servings = i18n_servings
         builder = Builder()
         builder.append(b"<!DOCTYPE html>")
         return tag(builder, b"html", self.printHtml).tobytes()
@@ -31,12 +39,11 @@ class HtmlRecipe:
     def printBody(self, builder):
         if self.title is not None:
             tag(builder, b"h1", self.title)
+        tag(builder, b"h2", self.i18n_ingredients)
         if self.servings is not None:
-            tag(builder, b"h2", f"Ingredients (serves {self.servings})")
-        else:
-            tag(builder, b"h2", "Ingredients")
+            tag(builder, b"p", self.i18n_servings.replace("$servings", self.servings))
         tag(builder, b"ul", self.printIngredients)
-        tag(builder, b"h2", "Instructions")
+        tag(builder, b"h2", self.i18n_instructions)
         tag(builder, b"p", lambda builder: builder.extend(self.instructions))
 
     def printHead(self, builder):

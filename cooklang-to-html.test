@@ -17,7 +17,8 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent -wrap 1000 --tidy-mark false
 </head>
 <body>
   <h1>Boiled potatoes</h1>
-  <h2>Ingredients (serves 2)</h2>
+  <h2>Ingredients</h2>
+  <p>Serves 2</p>
   <ul>
     <li>potatoes, 4.0</li>
     <li>water, 1.0 L</li>
@@ -51,5 +52,30 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
   </ul>
   <h2>Instructions</h2>
   <p>&lt; 2.0 &lt; &lt;</p>
+</body>
+</html>
+
+# Provide custom i18n values for headers
+<<<
+>> title: Oxygen
+>> servings: 1
+Breathe in @oxygen
+$$$ nix run .# -- --s-instructions Steps --s-ingredients Stuff --s-servings 'For $servings' 2> /dev/null | tidy -quiet -indent --tidy-mark false
+>>>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Oxygen</title>
+</head>
+<body>
+  <h1>Oxygen</h1>
+  <h2>Stuff</h2>
+  <p>For 1</p>
+  <ul>
+    <li>oxygen</li>
+  </ul>
+  <h2>Steps</h2>
+  <p>Breathe in oxygen</p>
 </body>
 </html>
