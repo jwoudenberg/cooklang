@@ -123,36 +123,34 @@ def parseRecipe(text, createRecipe=Recipe):
     while True:
         (instruction, text) = takeWhile(text, lambda char: char not in b"@#~-[")
         recipe.appendInstruction(instruction)
-        match text[0:1]:
-            case b"":
-                break
-            case b"-":
-                if text[0:2] == b"--":
-                    (_, text) = takeWhile(text, lambda char: char != ord("\n"))
-                else:
-                    recipe.appendInstruction(b"-")
+        next = text[0:1]
+        if next == b"":
+            break
+        elif next == b"-":
+            if text[0:2] == b"--":
+                (_, text) = takeWhile(text, lambda char: char != ord("\n"))
+            else:
+                recipe.appendInstruction(b"-")
+                text = text[1:]
+        elif next == b"[":
+            if text[0:2] == b"[-":
+                while not (text[0:2] == b"" or text[0:2] == b"-]"):
                     text = text[1:]
-            case b"[":
-                if text[0:2] == b"[-":
-                    while not (text[0:2] == b"" or text[0:2] == b"-]"):
-                        text = text[1:]
-                    text = text[2:]
-                else:
-                    recipe.appendInstruction(b"[")
-                    text = text[1:]
-            case b"@":
-                (ingredient, text) = parseTerm(text[1:])
-                recipe.addIngredient(ingredient)
-            case b"#":
-                (cookware, text) = parseTerm(text[1:])
-                recipe.addCookware(cookware)
-            case b"~":
-                (timer, text) = parseTerm(text[1:])
-                recipe.addTimer(timer)
-            case next:
-                raise ValueError(
-                    f"Expected a @, #, or ~ symbol but got {next.tobytes()}"
-                )
+                text = text[2:]
+            else:
+                recipe.appendInstruction(b"[")
+                text = text[1:]
+        elif next == b"@":
+            (ingredient, text) = parseTerm(text[1:])
+            recipe.addIngredient(ingredient)
+        elif next == b"#":
+            (cookware, text) = parseTerm(text[1:])
+            recipe.addCookware(cookware)
+        elif next == b"~":
+            (timer, text) = parseTerm(text[1:])
+            recipe.addTimer(timer)
+        else:
+            raise ValueError(f"Expected a @, #, or ~ symbol but got {next.tobytes()}")
 
     return recipe
 

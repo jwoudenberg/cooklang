@@ -9,7 +9,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        python = "python310";
+        python = "python38";
         ppkgs = pkgs."${python}Packages";
 
         cooklang_to_html_lib = ppkgs.buildPythonPackage {

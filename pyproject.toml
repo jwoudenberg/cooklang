@@ -6,7 +6,7 @@ authors = [
 ]
 description = "A cooklang parser and html renderer"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 
 [project.scripts]
 cooklang-to-html = "cooklang_to_html.cli:main"
