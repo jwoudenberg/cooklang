@@ -44,7 +44,12 @@ class HtmlRecipe:
             tag(builder, b"p", self.i18n_servings.replace("$servings", self.servings))
         tag(builder, b"ul", self.printIngredients)
         tag(builder, b"h2", self.i18n_instructions)
-        tag(builder, b"p", lambda builder: builder.extend(self.instructions))
+        tag(
+            builder,
+            b"p",
+            lambda builder: builder.extend(self.instructions),
+            {"tabindex": "0"},
+        )
 
     def printHead(self, builder):
         tag(builder, b"meta", None, {"charset": "utf-8"})
@@ -54,7 +59,9 @@ class HtmlRecipe:
             tag(builder, b"title", self.title)
 
     def appendEscaped(self, text):
-        escaped = html.escape(text).replace("\n\n", "</p><p>").encode("utf8")
+        escaped = (
+            html.escape(text).replace("\n\n", '</p><p tabindex="0">').encode("utf8")
+        )
         self.instructions.append(escaped)
 
     def appendInstruction(self, text):

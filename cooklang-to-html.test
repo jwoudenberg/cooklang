@@ -25,8 +25,8 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent -wrap 1000 --tidy-mark false
     <li>salt</li>
   </ul>
   <h2>Instructions</h2>
-  <p>Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.</p>
-  <p>Boil for 12 minutes.</p>
+  <p tabindex="0">Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.</p>
+  <p tabindex="0">Boil for 12 minutes.</p>
 </body>
 </html>
 
@@ -51,7 +51,7 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
     <li>&lt;, 2.0 &lt;</li>
   </ul>
   <h2>Instructions</h2>
-  <p>&lt; 2.0 &lt; &lt;</p>
+  <p tabindex="0">&lt; 2.0 &lt; &lt;</p>
 </body>
 </html>
 
@@ -76,6 +76,6 @@ $$$ nix run .# -- --s-instructions Steps --s-ingredients Stuff --s-servings 'For
     <li>oxygen</li>
   </ul>
   <h2>Steps</h2>
-  <p>Breathe in oxygen</p>
+  <p tabindex="0">Breathe in oxygen</p>
 </body>
 </html>
