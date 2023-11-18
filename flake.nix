@@ -1,28 +1,22 @@
 {
-  description = "parse-recipe";
+  description = "groceries";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
-
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-        parse-recipe =
-          pkgs.haskellPackages.callCabal2nix "parse-recipe" ./parse-recipe { };
+        pkgs = import nixpkgs { inherit system; };
+        python = "python310";
       in {
-        defaultPackage = pkgs.haskell.lib.justStaticExecutables parse-recipe;
-        devShell =
-
-          pkgs.haskellPackages.shellFor {
-            packages = p: [ parse-recipe ];
-            buildInputs = [
-              pkgs.cabal-install
-              pkgs.haskellPackages.ghcid
-              pkgs.haskellPackages.hpack
-              pkgs.ormolu
-              pkgs.swiProlog
-            ];
-          };
+        devShell = pkgs.mkShell {
+          nativeBuildInputs = [
+            pkgs."${python}"
+            pkgs."${python}Packages".black
+            pkgs."${python}Packages".flake8
+          ];
+        };
       });
 }
