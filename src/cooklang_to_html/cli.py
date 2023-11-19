@@ -42,12 +42,19 @@ def main():
         default="Serves $servings",
         help="string to use as servings description",
     )
+    parser.add_argument(
+        "--s-lang",
+        metavar="str",
+        default="en-US",
+        help="language code of the generated recipe",
+    )
     args = parser.parse_args()
     html = recipe_html.toHtml(
         args.recipe.buffer.read(),
         i18n_ingredients=args.s_ingredients,
         i18n_instructions=args.s_instructions,
         i18n_servings=args.s_servings,
+        l10n_lang=args.s_lang,
     )
     args.output.buffer.write(html)
 

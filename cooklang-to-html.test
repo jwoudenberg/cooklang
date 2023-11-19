@@ -9,7 +9,7 @@ Boil for 12 minutes.
 $$$ nix run .# 2> /dev/null | tidy -quiet -indent -wrap 1000 --tidy-mark false
 >>>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
   <meta charset="utf-8">
   <meta name="course" content="dinner">
@@ -38,7 +38,7 @@ $$$ nix run .# 2> /dev/null | tidy -quiet -indent -wrap 1000 --tidy-mark false
 $$$ nix run .# 2> /dev/null | tidy -quiet -indent --tidy-mark false
 >>>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
   <meta charset="utf-8">
   <meta name="course" content="&lt;">
@@ -63,7 +63,7 @@ Breathe in @oxygen
 $$$ nix run .# -- --s-instructions Steps --s-ingredients Stuff --s-servings 'For $servings' 2> /dev/null | tidy -quiet -indent --tidy-mark false
 >>>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
   <meta charset="utf-8">
   <title>Oxygen</title>

@@ -20,13 +20,14 @@ class HtmlRecipe:
         i18n_ingredients="Ingredients",
         i18n_instructions="Instructions",
         i18n_servings="Serves $servings",
+        l10n_lang="en-US",
     ):
         self.i18n_ingredients = i18n_ingredients
         self.i18n_instructions = i18n_instructions
         self.i18n_servings = i18n_servings
         builder = Builder()
         builder.append(b"<!DOCTYPE html>")
-        return tag(builder, b"html", self.printHtml).tobytes()
+        return tag(builder, b"html", self.printHtml, {"lang": l10n_lang}).tobytes()
 
     def printIngredients(self, builder):
         for ingredient in self.ingredients:
