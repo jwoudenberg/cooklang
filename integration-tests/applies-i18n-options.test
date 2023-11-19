@@ -1,0 +1,23 @@
+<<<
+>> title: Oxygen
+>> servings: 1
+Breathe in @oxygen
+$$$ ./run --s-instructions Steps --s-ingredients Stuff --s-servings 'For $servings' --s-lang 'nl-NL'
+>>>
+<!DOCTYPE html>
+<html lang="nl-NL">
+<head>
+  <meta charset="utf-8">
+  <title>Oxygen</title>
+</head>
+<body>
+  <h1>Oxygen</h1>
+  <h2>Stuff</h2>
+  <p>For 1</p>
+  <ul>
+    <li>oxygen</li>
+  </ul>
+  <h2>Steps</h2>
+  <p tabindex="0">Breathe in oxygen</p>
+</body>
+</html>
