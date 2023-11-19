@@ -73,7 +73,7 @@ class HtmlRecipe:
         quantity = ingredient.get("quantity", None)
         unit = ingredient.get("unit", None)
         if quantity is not None:
-            self.appendEscaped(f"{quantity} ")
+            self.appendEscaped(f"{quantity:.2g} ")
         if unit is not None:
             self.appendEscaped(f"{unit} ")
         self.ingredients.append(ingredient)
@@ -85,7 +85,7 @@ class HtmlRecipe:
     def addTimer(self, timer):
         quantity = timer["quantity"]
         unit = timer["unit"]
-        self.appendEscaped(f"{quantity} {unit}")
+        self.appendEscaped(f"{quantity:.2g} {unit}")
 
 
 def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
@@ -160,6 +160,16 @@ def ingredientToText(ingredient):
     >>> ingredientToText({ 'name': 'carrots', 'quantity': 0.5, 'unit': 'kg' })
     'carrots, 0.5 kg'
 
+    Return quantity without trailing zeroes
+
+    >>> ingredientToText({ 'name': 'carrots', 'quantity': 2.0 })
+    'carrots, 2'
+
+    Return quantity rounded to two signficant digits
+
+    >>> ingredientToText({ 'name': 'carrots', 'quantity': 2.1111 })
+    'carrots, 2.1'
+
     Return empty string if no ingredient name is present
 
     >>> ingredientToText({})
@@ -177,6 +187,6 @@ def ingredientToText(ingredient):
     if amount is None and unit is None:
         return name
     elif unit is None:
-        return f"{name}, {amount}"
+        return f"{name}, {amount:.2g}"
     else:
-        return f"{name}, {amount} {unit}"
+        return f"{name}, {amount:.2g} {unit}"

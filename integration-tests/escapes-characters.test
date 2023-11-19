@@ -15,9 +15,9 @@ $$$ ./run
   <h1>&lt;</h1>
   <h2>Ingredients</h2>
   <ul>
-    <li>&lt;, 2.0 &lt;</li>
+    <li>&lt;, 2 &lt;</li>
   </ul>
   <h2>Instructions</h2>
-  <p tabindex="0">&lt; 2.0 &lt; &lt;</p>
+  <p tabindex="0">&lt; 2 &lt; &lt;</p>
 </body>
 </html>

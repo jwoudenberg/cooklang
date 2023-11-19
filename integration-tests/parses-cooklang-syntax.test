@@ -20,12 +20,12 @@ $$$ ./run
   <h2>Ingredients</h2>
   <p>Serves 2</p>
   <ul>
-    <li>potatoes, 4.0</li>
-    <li>water, 1.0 L</li>
+    <li>potatoes, 4</li>
+    <li>water, 1 L</li>
     <li>salt</li>
   </ul>
   <h2>Instructions</h2>
-  <p tabindex="0">Put 4.0 Potatoes in a pan and add 1.0 L water and some salt.</p>
+  <p tabindex="0">Put 4 Potatoes in a pan and add 1 L water and some salt.</p>
   <p tabindex="0">Boil for 12 minutes.</p>
 </body>
 </html>
