@@ -3,17 +3,27 @@ import cooklang_to_html.cooklang as cooklang
 from cooklang_to_html.builder import Builder
 
 
-def toHtml(recipeText, **kwargs):
-    return cooklang.parseRecipe(recipeText, HtmlRecipe).html(**kwargs)
+def toHtml(recipeText, portions=None, **kwargs):
+    def create_recipe(metadata):
+        return HtmlRecipe(metadata, portions)
+
+    return cooklang.parseRecipe(recipeText, create_recipe).html(**kwargs)
 
 
 class HtmlRecipe:
-    def __init__(self, metadata):
+    def __init__(self, metadata, portions):
         self.instructions = Builder()
         self.ingredients = []
         self.title = metadata.pop("title", None)
         self.servings = metadata.pop("servings", None)
         self.metadata = metadata
+        if portions is None:
+            self.ingredient_multiplier = 1
+        elif self.servings is None:
+            self.ingredient_multiplier = portions
+        else:
+            self.ingredient_multiplier = portions / int(self.servings)
+            self.servings = f"{portions}"
 
     def html(
         self,
@@ -73,7 +83,8 @@ class HtmlRecipe:
         quantity = ingredient.get("quantity", None)
         unit = ingredient.get("unit", None)
         if quantity is not None:
-            self.appendEscaped(f"{formatNumber(quantity)} ")
+            ingredient["quantity"] = self.ingredient_multiplier * quantity
+            self.appendEscaped(f"{formatNumber(ingredient['quantity'])} ")
         if unit is not None:
             self.appendEscaped(f"{unit} ")
         self.ingredients.append(ingredient)

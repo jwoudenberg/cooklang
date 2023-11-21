@@ -25,6 +25,12 @@ def main():
         help="path to output file. Writes to stdout by default",
     )
     parser.add_argument(
+        "--portions",
+        metavar="no",
+        type=int,
+        help="adapt ingredients to a certain amount of portions",
+    )
+    parser.add_argument(
         "--s-ingredients",
         metavar="str",
         default="Ingredients",
@@ -51,6 +57,7 @@ def main():
     args = parser.parse_args()
     html = recipe_html.toHtml(
         args.recipe.buffer.read(),
+        portions=args.portions,
         i18n_ingredients=args.s_ingredients,
         i18n_instructions=args.s_instructions,
         i18n_servings=args.s_servings,
