@@ -1,4 +1,5 @@
 import html
+import cooklang_to_html.util as util
 import cooklang_to_html.cooklang as cooklang
 from cooklang_to_html.builder import Builder
 
@@ -88,7 +89,7 @@ class HtmlRecipe:
         unit = ingredient.get("unit", None)
         if quantity is not None:
             ingredient["quantity"] = self.ingredient_multiplier * quantity
-            self.appendEscaped(f"{formatNumber(ingredient['quantity'])} ")
+            self.appendEscaped(f"{util.formatNumber(ingredient['quantity'])} ")
         if unit is not None:
             self.appendEscaped(f"{unit} ")
         self.ingredients.append(ingredient)
@@ -100,7 +101,7 @@ class HtmlRecipe:
     def addTimer(self, timer):
         quantity = timer["quantity"]
         unit = timer["unit"]
-        self.appendEscaped(f"{formatNumber(quantity)} {unit}")
+        self.appendEscaped(f"{util.formatNumber(quantity)} {unit}")
 
 
 def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
@@ -158,37 +159,6 @@ def tag(builder, tagname, inTag=lambda _: {}, attributes={}):
     return builder
 
 
-def formatNumber(number):
-    """
-    Return number without trailing zeroes
-
-    >>> formatNumber(2.0)
-    '2'
-
-    Return number rounded to two signficant digits
-
-    >>> formatNumber(2.111)
-    '2.1'
-
-    Return numbers between 10 and 100 without digits
-
-    >>> formatNumber(88.81)
-    '89'
-
-    >>> formatNumber(2.111)
-    '2.1'
-
-    Return large numbers without scientific notation
-
-    >>> formatNumber(2000)
-    '2000'
-    """
-    if number >= 100:
-        return f"{number:.0f}"
-    else:
-        return f"{number:.2g}"
-
-
 def ingredientToText(ingredient):
     """
     Return the ingredient name as a string
@@ -223,6 +193,6 @@ def ingredientToText(ingredient):
     if amount is None and unit is None:
         return name
     elif unit is None:
-        return f"{name}, {formatNumber(amount)}"
+        return f"{name}, {util.formatNumber(amount)}"
     else:
-        return f"{name}, {formatNumber(amount)} {unit}"
+        return f"{name}, {util.formatNumber(amount)} {unit}"

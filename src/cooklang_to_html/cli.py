@@ -2,6 +2,7 @@
 
 import sys
 import cooklang_to_html.recipe_html as recipe_html
+import cooklang_to_html.recipe_groceries as recipe_groceries
 import argparse
 
 
@@ -23,6 +24,11 @@ def main():
         type=argparse.FileType("w"),
         default=sys.stdout,
         help="path to output file. Writes to stdout by default",
+    )
+    parser.add_argument(
+        "--groceries",
+        action="store_true",
+        help="output a grocery list in todo.txt format",
     )
     parser.add_argument(
         "--portions",
@@ -55,15 +61,22 @@ def main():
         help="language code of the generated recipe",
     )
     args = parser.parse_args()
-    html = recipe_html.toHtml(
-        args.recipe.buffer.read(),
-        portions=args.portions,
-        i18n_ingredients=args.s_ingredients,
-        i18n_instructions=args.s_instructions,
-        i18n_servings=args.s_servings,
-        l10n_lang=args.s_lang,
-    )
-    args.output.buffer.write(html)
+    if args.groceries:
+        groceries = recipe_groceries.to_groceries(
+            args.recipe.buffer.read(),
+            portions=args.portions,
+        )
+        args.output.buffer.write(groceries)
+    else:
+        html = recipe_html.toHtml(
+            args.recipe.buffer.read(),
+            portions=args.portions,
+            i18n_ingredients=args.s_ingredients,
+            i18n_instructions=args.s_instructions,
+            i18n_servings=args.s_servings,
+            l10n_lang=args.s_lang,
+        )
+        args.output.buffer.write(html)
 
 
 if __name__ == "__main__":

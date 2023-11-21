@@ -1,0 +1,27 @@
+# For a recipe without servings metadata
+<<<
+>> title: Boiled potatoes
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --groceries --portions 2
+>>>
+potatoes, 8
+water, 2 L
+salt
+
+
+# For a recipe with servings metadata
+<<<
+>> title: Boiled potatoes
+>> servings: 2
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --groceries --portions 3
+>>>
+potatoes, 6
+water, 1.5 L
+salt
