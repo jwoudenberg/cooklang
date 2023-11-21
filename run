@@ -7,7 +7,7 @@ set -euo pipefail
 # We pass html output through an html tidier, because:
 # - This adds some testing of html output
 # - It makes it easier to write and diff expected output in tests
-output=$(nix run .# -- "$@" 2> /dev/null)
+output=$(PYTHONPATH=src/ src/cooklang_to_html/cli.py "$@")
 if [[ ${output:0:1} == "<" ]];
 then echo "$output" | tidy -quiet -indent -wrap 1000 --tidy-mark false
 else echo "$output"
