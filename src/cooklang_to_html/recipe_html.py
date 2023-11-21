@@ -3,15 +3,28 @@ import cooklang_to_html.cooklang as cooklang
 from cooklang_to_html.builder import Builder
 
 
-def toHtml(recipeText, portions=None, **kwargs):
+def toHtml(recipeText, **kwargs):
     def create_recipe(metadata):
-        return HtmlRecipe(metadata, portions)
+        return HtmlRecipe(metadata, **kwargs)
 
-    return cooklang.parseRecipe(recipeText, create_recipe).html(**kwargs)
+    return cooklang.parseRecipe(recipeText, create_recipe).html()
 
 
 class HtmlRecipe:
-    def __init__(self, metadata, portions):
+    def __init__(
+        self,
+        metadata,
+        portions=None,
+        i18n_ingredients="Ingredients",
+        i18n_instructions="Instructions",
+        i18n_servings="Serves $servings",
+        l10n_lang="en-US",
+    ):
+        self.i18n_ingredients = i18n_ingredients
+        self.i18n_instructions = i18n_instructions
+        self.i18n_servings = i18n_servings
+        self.l10n_lang = l10n_lang
+
         self.instructions = Builder()
         self.ingredients = []
         self.title = metadata.pop("title", None)
@@ -25,19 +38,10 @@ class HtmlRecipe:
             self.ingredient_multiplier = portions / int(self.servings)
             self.servings = f"{portions}"
 
-    def html(
-        self,
-        i18n_ingredients="Ingredients",
-        i18n_instructions="Instructions",
-        i18n_servings="Serves $servings",
-        l10n_lang="en-US",
-    ):
-        self.i18n_ingredients = i18n_ingredients
-        self.i18n_instructions = i18n_instructions
-        self.i18n_servings = i18n_servings
+    def html(self):
         builder = Builder()
         builder.append(b"<!DOCTYPE html>")
-        return tag(builder, b"html", self.printHtml, {"lang": l10n_lang}).tobytes()
+        return tag(builder, b"html", self.printHtml, {"lang": self.l10n_lang}).tobytes()
 
     def printIngredients(self, builder):
         for ingredient in self.ingredients:
