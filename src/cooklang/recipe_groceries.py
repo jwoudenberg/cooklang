@@ -1,6 +1,6 @@
-import cooklang_to_html.util as util
-import cooklang_to_html.cooklang as cooklang
-from cooklang_to_html.builder import Builder
+import cooklang.util as util
+import cooklang.parser as parser
+from cooklang.builder import Builder
 
 
 def to_groceries(recipeText, portions=None):
@@ -11,7 +11,7 @@ def to_groceries(recipeText, portions=None):
             servings = int(metadata.get("servings", 1))
             return RecipeGroceries(portions / servings)
 
-    return cooklang.parseRecipe(recipeText, create_recipe).groceries()
+    return parser.parseRecipe(recipeText, create_recipe).groceries()
 
 
 class RecipeGroceries:

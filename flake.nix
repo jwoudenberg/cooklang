@@ -12,25 +12,25 @@
         python = "python38";
         ppkgs = pkgs."${python}Packages";
 
-        cooklang_to_html_lib = ppkgs.buildPythonPackage {
-          pname = "cooklang_to_html";
+        cooklang_lib = ppkgs.buildPythonPackage {
+          pname = "cooklang";
           version = "1.0.0";
           format = "pyproject";
           src = ./.;
           nativeBuildInputs = [ ppkgs.setuptools ];
         };
-        cooklang_to_html_pkg = ppkgs.toPythonApplication cooklang_to_html_lib;
-        cooklang_to_html_app = {
+        cooklang_pkg = ppkgs.toPythonApplication cooklang_lib;
+        cooklang_app = {
           type = "app";
-          program = "${cooklang_to_html_pkg}/bin/cooklang-to-html";
+          program = "${cooklang_pkg}/bin/cooklang";
         };
       in
       {
-        python3Packages.cooklang_to_html = cooklang_to_html_lib;
-        packages.cooklang-to-html = cooklang_to_html_pkg;
-        defaultPackage = cooklang_to_html_pkg;
-        apps.cooklang-to-html = cooklang_to_html_app;
-        defaultApp = cooklang_to_html_app;
+        python3Packages.cooklang = cooklang_lib;
+        packages.cooklang = cooklang_pkg;
+        defaultPackage = cooklang_pkg;
+        apps.cooklang = cooklang_app;
+        defaultApp = cooklang_app;
 
         devShell = pkgs.mkShell {
           nativeBuildInputs = [

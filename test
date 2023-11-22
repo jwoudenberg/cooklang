@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-do { cd src; python -m doctest ./cooklang_to_html/*.py }
+do { cd src; python -m doctest ./cooklang/*.py }
 shelltest --all integration-tests
-flake8 src/cooklang_to_html/*
-black --check src/cooklang_to_html/*
+flake8 src/cooklang/*
+black --check src/cooklang/*

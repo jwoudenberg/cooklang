@@ -1,5 +1,5 @@
 [project]
-name = "cooklang_to_html"
+name = "cooklang"
 version = "1.0.0"
 authors = [
   { name="Jasper Woudenberg", email="mail@jasperwoudenberg.com" },
@@ -9,4 +9,4 @@ readme = "README.md"
 requires-python = ">=3.8"
 
 [project.scripts]
-cooklang-to-html = "cooklang_to_html.cli:main"
+cooklang = "cooklang.cli:main"

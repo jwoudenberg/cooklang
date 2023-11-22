@@ -1,14 +1,14 @@
 import html
-import cooklang_to_html.util as util
-import cooklang_to_html.cooklang as cooklang
-from cooklang_to_html.builder import Builder
+import cooklang.util as util
+import cooklang.parser as parser
+from cooklang.builder import Builder
 
 
 def toHtml(recipeText, **kwargs):
     def create_recipe(metadata):
         return HtmlRecipe(metadata, **kwargs)
 
-    return cooklang.parseRecipe(recipeText, create_recipe).html()
+    return parser.parseRecipe(recipeText, create_recipe).html()
 
 
 class HtmlRecipe:

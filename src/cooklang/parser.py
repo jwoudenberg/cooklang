@@ -1,5 +1,5 @@
 from sys import intern
-from cooklang_to_html.builder import Builder
+from cooklang.builder import Builder
 
 """
 A parser for the cooklang language, as specified here:
@@ -199,7 +199,7 @@ def parseTerm(text):
     >>> parseTerm(b'chopped onions{')
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected '}' but got ''
+    parser.ParseException: Expected '}' but got ''
     """
 
     term = {}
@@ -240,7 +240,7 @@ def parseAmount(text):
     >>> parseAmount(b'{hi}')
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected a number but got 'hi'
+    parser.ParseException: Expected a number but got 'hi'
     """
 
     text = exactly(text, b"{")
@@ -276,7 +276,7 @@ def number(text):
     >>> number(b"hi")
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected a number but got 'hi'
+    parser.ParseException: Expected a number but got 'hi'
     """
 
     try:
@@ -295,7 +295,7 @@ def exactly(text, expected):
     >>> exactly(b"hi there", b"ho") is None
     Traceback (most recent call last):
     ...
-    cooklang.ParseException: Expected 'ho' but got 'hi'
+    parser.ParseException: Expected 'ho' but got 'hi'
     """
 
     expectedSize = len(expected)

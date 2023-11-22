@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
-import cooklang_to_html.recipe_html as recipe_html
-import cooklang_to_html.recipe_groceries as recipe_groceries
+import cooklang.recipe_html as recipe_html
+import cooklang.recipe_groceries as recipe_groceries
 import argparse
 
 
