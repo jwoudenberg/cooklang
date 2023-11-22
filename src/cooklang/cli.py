@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
-import cooklang.recipe_html as recipe_html
-import cooklang.recipe_groceries as recipe_groceries
+import cooklang.exporter_html as exporter_html
+import cooklang.exporter_groceries as exporter_groceries
 import argparse
 
 
@@ -62,13 +62,13 @@ def main():
     )
     args = parser.parse_args()
     if args.groceries:
-        groceries = recipe_groceries.to_groceries(
+        groceries = exporter_groceries.to_groceries(
             args.recipe.buffer.read(),
             portions=args.portions,
         )
         args.output.buffer.write(groceries)
     else:
-        html = recipe_html.toHtml(
+        html = exporter_html.toHtml(
             args.recipe.buffer.read(),
             portions=args.portions,
             i18n_ingredients=args.s_ingredients,
