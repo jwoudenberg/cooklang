@@ -9,5 +9,5 @@ set -euo pipefail
 RECIPE="$*"
 FILE=$(mktemp)
 cat > "$FILE"
-echo "$RECIPE" | PYTHONPATH=src/ src/cooklang/cli.py --groceries --output "$FILE"
+echo "$RECIPE" | PYTHONPATH=src/ src/cooklang/cli.py --output "$FILE"
 cat "$FILE"

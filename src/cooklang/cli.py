@@ -9,7 +9,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate html pages for cooklang recipes",
+        description="Generate grocery lists for cooklang recipes",
         usage="%(prog)s [file]",
     )
     parser.add_argument(
@@ -26,9 +26,9 @@ def main():
         help="path to output file. Writes to stdout by default",
     )
     parser.add_argument(
-        "--groceries",
+        "--html",
         action="store_true",
-        help="output a grocery list in todo.txt format",
+        help="output the recipe as an html page",
     )
     parser.add_argument(
         "--portions",
@@ -61,14 +61,7 @@ def main():
         help="language code of the generated recipe",
     )
     args = parser.parse_args()
-    if args.groceries:
-        groceries = exporter_groceries.to_groceries(
-            args.recipe.buffer.read(),
-            existing_groceries=read_from_path_or_none(args.output),
-            portions=args.portions,
-        )
-        write_to_path_or_stdout(args.output, groceries)
-    else:
+    if args.html:
         html = exporter_html.toHtml(
             args.recipe.buffer.read(),
             portions=args.portions,
@@ -78,6 +71,13 @@ def main():
             l10n_lang=args.s_lang,
         )
         write_to_path_or_stdout(args.output, html)
+    else:
+        groceries = exporter_groceries.to_groceries(
+            args.recipe.buffer.read(),
+            existing_groceries=read_from_path_or_none(args.output),
+            portions=args.portions,
+        )
+        write_to_path_or_stdout(args.output, groceries)
 
 
 def read_from_path_or_none(path):

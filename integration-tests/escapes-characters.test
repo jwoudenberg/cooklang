@@ -2,7 +2,7 @@
 >> title: <
 >> course: <
 < @<{2.0%<}
-$$$ ./run
+$$$ ./run --html
 >>>
 <!DOCTYPE html>
 <html lang="en-US">

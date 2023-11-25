@@ -5,7 +5,7 @@
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
 
 Boil for 12 minutes.
-$$$ ./run --groceries --portions 2
+$$$ ./run --portions 2
 >>>
 potatoes, 8
 salt
@@ -20,7 +20,7 @@ water, 2 L
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
 
 Boil for 12 minutes.
-$$$ ./run --groceries --portions 3
+$$$ ./run --portions 3
 >>>
 potatoes, 6
 salt

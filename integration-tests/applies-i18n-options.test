@@ -2,7 +2,7 @@
 >> title: Oxygen
 >> servings: 1
 Breathe in @oxygen
-$$$ ./run --s-instructions Steps --s-ingredients Stuff --s-servings 'For $servings' --s-lang 'nl-NL'
+$$$ ./run --html --s-instructions Steps --s-ingredients Stuff --s-servings 'For $servings' --s-lang 'nl-NL'
 >>>
 <!DOCTYPE html>
 <html lang="nl-NL">

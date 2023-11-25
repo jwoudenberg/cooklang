@@ -5,7 +5,7 @@
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
 
 Boil for 12 minutes.
-$$$ ./run --portions 2
+$$$ ./run --html --portions 2
 >>>
 <!DOCTYPE html>
 <html lang="en-US">
@@ -38,7 +38,7 @@ $$$ ./run --portions 2
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
 
 Boil for 12 minutes.
-$$$ ./run --portions 3
+$$$ ./run --html --portions 3
 >>>
 <!DOCTYPE html>
 <html lang="en-US">
