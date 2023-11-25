@@ -8,8 +8,8 @@ Boil for 12 minutes.
 $$$ ./run --groceries --portions 2
 >>>
 potatoes, 8
-water, 2 L
 salt
+water, 2 L
 
 
 # For a recipe with servings metadata
@@ -23,5 +23,5 @@ Boil for 12 minutes.
 $$$ ./run --groceries --portions 3
 >>>
 potatoes, 6
-water, 1.5 L
 salt
+water, 1.5 L
