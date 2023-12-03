@@ -84,8 +84,11 @@ def read_from_path_or_none(path):
     if path is None:
         return None
     else:
-        with open(path, "r") as output:
-            return output.read()
+        try:
+            with open(path, "r") as output:
+                return output.read()
+        except FileNotFoundError:
+            return ""
 
 
 def write_to_path_or_stdout(path, content):
