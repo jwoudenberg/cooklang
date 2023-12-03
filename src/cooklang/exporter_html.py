@@ -16,6 +16,7 @@ class HtmlRecipe:
         self,
         metadata,
         portions=None,
+        multiplier=None,
         i18n_ingredients="Ingredients",
         i18n_instructions="Instructions",
         i18n_servings="Serves $servings",
@@ -31,13 +32,13 @@ class HtmlRecipe:
         self.title = metadata.pop("title", None)
         self.servings = metadata.pop("servings", None)
         self.metadata = metadata
-        if portions is None:
-            self.ingredient_multiplier = 1
-        elif self.servings is None:
-            self.ingredient_multiplier = portions
-        else:
-            self.ingredient_multiplier = portions / int(self.servings)
-            self.servings = f"{portions}"
+        self.ingredient_multiplier = util.getMultiplier(
+            self.servings, portions, multiplier
+        )
+        if self.servings is not None:
+            self.servings = util.formatNumber(
+                float(self.servings) * self.ingredient_multiplier
+            )
 
     def html(self):
         builder = Builder()

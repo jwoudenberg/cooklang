@@ -1,0 +1,78 @@
+# For a grocery list
+<<<
+>> title: Boiled potatoes
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --multiplier 2
+>>>
+potatoes, 8
+salt
+water, 2 L
+
+
+
+# For a recipe without servings metadata
+<<<
+>> title: Boiled potatoes
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --html --multiplier 2
+>>>
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="course" content="dinner">
+  <title>Boiled potatoes</title>
+</head>
+<body>
+  <h1>Boiled potatoes</h1>
+  <h2>Ingredients</h2>
+  <ul>
+    <li>potatoes, 8</li>
+    <li>water, 2 L</li>
+    <li>salt</li>
+  </ul>
+  <h2>Instructions</h2>
+  <p tabindex="0">Put 8 Potatoes in a pan and add 2 L water and some salt.</p>
+  <p tabindex="0">Boil for 12 minutes.</p>
+</body>
+</html>
+
+
+
+# For a recipe with servings metadata
+<<<
+>> title: Boiled potatoes
+>> servings: 2
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --html --multiplier 1.5
+>>>
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="course" content="dinner">
+  <title>Boiled potatoes</title>
+</head>
+<body>
+  <h1>Boiled potatoes</h1>
+  <h2>Ingredients</h2>
+  <p>Serves 3</p>
+  <ul>
+    <li>potatoes, 6</li>
+    <li>water, 1.5 L</li>
+    <li>salt</li>
+  </ul>
+  <h2>Instructions</h2>
+  <p tabindex="0">Put 6 Potatoes in a pan and add 1.5 L water and some salt.</p>
+  <p tabindex="0">Boil for 12 minutes.</p>
+</body>
+</html>

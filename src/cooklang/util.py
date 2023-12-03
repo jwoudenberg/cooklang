@@ -1,3 +1,37 @@
+import sys
+
+
+def getMultiplier(recipe_servings=None, desired_portions=None, desired_multiplier=None):
+    """
+    >>> getMultiplier(1, 2)
+    2.0
+
+    >>> getMultiplier(1, None, 3.0)
+    3.0
+
+    >>> getMultiplier(1, None, None)
+    1.0
+
+    >>> getMultiplier("1", 2)
+    2.0
+    """
+    if desired_portions is not None and desired_multiplier is not None:
+        sys.stderr.write("Specify at most one of --portions and --multiplier.\n")
+        sys.exit(1)
+
+    if recipe_servings is None and desired_portions is not None:
+        sys.stderr.write("Cannot use --portions for recipe without servings.\n")
+        sys.exit(1)
+
+    if desired_portions is not None:
+        return desired_portions / float(recipe_servings)
+
+    if desired_multiplier is not None:
+        return desired_multiplier
+
+    return 1.0
+
+
 def formatNumber(number):
     """
     Return number without trailing zeroes

@@ -1,32 +1,16 @@
-# For a recipe without servings metadata
+# For a grocery list
 <<<
 >> title: Boiled potatoes
+>> servings: 2
 >> course: dinner
 Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
 
 Boil for 12 minutes.
-$$$ ./run --html --portions 2
+$$$ ./run --portions 3
 >>>
-<!DOCTYPE html>
-<html lang="en-US">
-<head>
-  <meta charset="utf-8">
-  <meta name="course" content="dinner">
-  <title>Boiled potatoes</title>
-</head>
-<body>
-  <h1>Boiled potatoes</h1>
-  <h2>Ingredients</h2>
-  <ul>
-    <li>potatoes, 8</li>
-    <li>water, 2 L</li>
-    <li>salt</li>
-  </ul>
-  <h2>Instructions</h2>
-  <p tabindex="0">Put 8 Potatoes in a pan and add 2 L water and some salt.</p>
-  <p tabindex="0">Boil for 12 minutes.</p>
-</body>
-</html>
+potatoes, 6
+salt
+water, 1.5 L
 
 
 
@@ -61,3 +45,32 @@ $$$ ./run --html --portions 3
   <p tabindex="0">Boil for 12 minutes.</p>
 </body>
 </html>
+
+
+
+# For a recipe without servings metadata
+<<<
+>> title: Boiled potatoes
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --html --portions 3
+>>>2
+Cannot use --portions for recipe without servings.
+>>>=1
+
+
+
+# When also specifying --multiplier
+<<<
+>> title: Boiled potatoes
+>> servings: 2
+>> course: dinner
+Put @Potatoes{4} in a #pan and add @water{1%L} and some @salt.
+
+Boil for 12 minutes.
+$$$ ./run --html --portions 3 --multiplier 2
+>>>2
+Specify at most one of --portions and --multiplier.
+>>>=1

@@ -33,8 +33,14 @@ def main():
     parser.add_argument(
         "--portions",
         metavar="no",
-        type=int,
+        type=float,
         help="adapt ingredients to a certain amount of portions",
+    )
+    parser.add_argument(
+        "--multiplier",
+        metavar="no",
+        type=float,
+        help="multiple ingredient amounts by a factor",
     )
     parser.add_argument(
         "--s-ingredients",
@@ -65,6 +71,7 @@ def main():
         html = exporter_html.toHtml(
             args.recipe.buffer.read(),
             portions=args.portions,
+            multiplier=args.multiplier,
             i18n_ingredients=args.s_ingredients,
             i18n_instructions=args.s_instructions,
             i18n_servings=args.s_servings,
@@ -76,6 +83,7 @@ def main():
             args.recipe.buffer.read(),
             existing_groceries=read_from_path_or_none(args.output),
             portions=args.portions,
+            multiplier=args.multiplier,
         )
         write_to_path_or_stdout(args.output, groceries)
 

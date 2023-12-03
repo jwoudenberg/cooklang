@@ -3,7 +3,7 @@ import cooklang.parser as parser
 import re
 
 
-def to_groceries(recipeText, portions=None, existing_groceries=None):
+def to_groceries(recipeText, portions=None, multiplier=None, existing_groceries=None):
     groceries = (
         Groceries()
         if existing_groceries is None
@@ -11,11 +11,10 @@ def to_groceries(recipeText, portions=None, existing_groceries=None):
     )
 
     def create_recipe(metadata):
-        if portions is None:
-            return ParsedRecipe(1, groceries)
-        else:
-            servings = int(metadata.get("servings", 1))
-            return ParsedRecipe(portions / servings, groceries)
+        ingredient_multiplier = util.getMultiplier(
+            metadata.get("servings"), portions, multiplier
+        )
+        return ParsedRecipe(ingredient_multiplier, groceries)
 
     return parser.parseRecipe(recipeText, create_recipe).print()
 
